@@ -8,6 +8,13 @@ from app.utils.cache import cache_get, cache_set, cache_delete, CacheKey
 books_bp = Blueprint('books', __name__)
 
 
+@books_bp.route('/popular', methods=['GET'])
+def popular_books():
+    limit = request.args.get('limit', 8, type=int)
+    result = book_service.get_popular_books(limit)
+    return success({'items': result})
+
+
 @books_bp.route('', methods=['GET'])
 @kiosk_blocked
 def search_books():

@@ -105,6 +105,16 @@
 
             <div id="bookList" class="row g-4"></div>
 
+            <div id="popularSection" class="mb-5">
+                <h5 class="mb-3" style="color:#FF6699;"><i class="bi bi-fire me-2"></i>热门推荐</h5>
+                <div id="popularList" class="row g-3">
+                    <div class="col-12 text-center py-3">
+                        <div class="spinner-border spinner-border-sm text-secondary"></div>
+                        <span class="text-muted ms-2">加载中...</span>
+                    </div>
+                </div>
+            </div>
+
             <div id="emptyArea" class="text-center py-5 d-none">
                 <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
                 <p class="text-muted mt-2">没有找到相关图书</p>
@@ -210,6 +220,38 @@
             document.getElementById('searchInput').addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') doSearch();
             });
+
+            async function loadPopular() {
+                const r = await apiGet('/books/popular?limit=8');
+                const container = document.getElementById('popularList');
+                if (!r || r.code !== 200 || !r.data.items || r.data.items.length === 0) {
+                    container.innerHTML = '<div class="col-12 text-center"><span class="text-muted">暂无推荐数据</span></div>';
+                    return;
+                }
+                container.innerHTML = '';
+                r.data.items.forEach(b => {
+                    const badge = b.borrow_count > 0
+                        ? '<span class="badge position-absolute top-0 end-0 m-1" style="background:#FF6699;font-size:0.7rem;">借过' + b.borrow_count + '次</span>'
+                        : '';
+                    const col = document.createElement('div');
+                    col.className = 'col-6 col-md-3';
+                    col.innerHTML = `
+                        <div class="card book-card shadow-sm h-100 position-relative" onclick="window.location.href='book.html?id=${b.id}'">
+                            ${badge}
+                            <div class="book-cover">
+                                ${b.cover_image_url
+                                    ? '<img src="' + b.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.style.display=\'none\'">'
+                                    : '<i class="bi bi-book"></i>'}
+                            </div>
+                            <div class="card-body p-2">
+                                <h6 class="card-title text-truncate mb-1" style="font-size:0.9rem;">${escapeHtml(b.title)}</h6>
+                                <p class="card-text text-truncate mb-0" style="font-size:0.75rem;">${escapeHtml(b.author)}</p>
+                            </div>
+                        </div>`;
+                    container.appendChild(col);
+                });
+            }
+            loadPopular();
 
             async function pollNotify() {
                 const r = await apiGet('/notifications/unread-count');

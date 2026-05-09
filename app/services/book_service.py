@@ -47,6 +47,33 @@ def get_book(book_id):
     return _book_dict(book)
 
 
+def get_popular_books(limit=8):
+    from app.models import BorrowRecord
+    from sqlalchemy import func
+    popular = (
+        db.session.query(
+            Book.id,
+            Book.title,
+            Book.author,
+            Book.isbn,
+            func.count(BorrowRecord.id).label('borrow_count')
+        )
+        .outerjoin(BorrowRecord, BorrowRecord.book_id == Book.id)
+        .group_by(Book.id)
+        .order_by(func.count(BorrowRecord.id).desc())
+        .limit(limit)
+        .all()
+    )
+    result = []
+    for p in popular:
+        book = Book.query.get(p.id)
+        d = _book_dict(book)
+        d['borrow_count'] = p.borrow_count
+        result.append(d)
+    result.sort(key=lambda x: x['borrow_count'], reverse=True)
+    return result
+
+
 def _book_dict(book):
     ol_cover = openlibrary_cover_url(book.isbn, 'M')
     return {
