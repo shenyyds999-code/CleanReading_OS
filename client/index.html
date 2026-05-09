@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园图书馆借阅系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fa; min-height: 100vh; }
+        .navbar-brand { font-weight: 700; }
+        .credit-badge { font-size: 0.85rem; }
+        .main-content { padding-top: 80px; padding-bottom: 40px; }
+    </style>
+</head>
+<body>
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="bi bi-book me-2"></i>校园图书馆
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html"><i class="bi bi-house"></i> 首页</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <span id="creditDisplay" class="badge bg-light text-dark credit-badge"></span>
+                    <span id="userDisplay" class="text-white"></span>
+                    <button id="logoutBtn" class="btn btn-outline-light btn-sm">退出</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="text-center py-5">
+                <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+                <h2 class="mt-3">欢迎回来</h2>
+                <p class="text-muted" id="welcomeMsg"></p>
+                <p class="text-muted">更多功能即将上线，敬请期待。</p>
+            </div>
+
+            <div class="row mt-4 g-3 justify-content-center">
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 text-center p-4">
+                        <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+                        <h5 class="mt-2">搜索图书</h5>
+                        <p class="text-muted small">暂未开放</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 text-center p-4">
+                        <i class="bi bi-chat-dots text-primary" style="font-size: 2rem;"></i>
+                        <h5 class="mt-2">AI 助手</h5>
+                        <p class="text-muted small">暂未开放</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card shadow-sm border-0 text-center p-4">
+                        <i class="bi bi-trophy text-primary" style="font-size: 2rem;"></i>
+                        <h5 class="mt-2">学习中心</h5>
+                        <p class="text-muted small">暂未开放</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        (function () {
+            const user = checkAuthAndRedirect();
+            if (!user) return;
+
+            document.getElementById('userDisplay').textContent = user.username;
+            document.getElementById('welcomeMsg').textContent = '你好，' + user.username + '！这是图书馆客户端首页。';
+
+            const creditBadge = document.getElementById('creditDisplay');
+            let creditColor = 'bg-success';
+            if (user.credit_score <= 2) creditColor = 'bg-danger';
+            else if (user.credit_score <= 4) creditColor = 'bg-warning text-dark';
+            creditBadge.className = 'badge ' + creditColor + ' credit-badge';
+            creditBadge.textContent = '信誉分: ' + user.credit_score;
+
+            document.getElementById('logoutBtn').addEventListener('click', function () {
+                clearAuth();
+                window.location.href = 'login.html';
+            });
+        })();
+    </script>
+</body>
+</html>

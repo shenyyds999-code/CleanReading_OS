@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - 校园图书馆借阅系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fa; min-height: 100vh; display: flex; align-items: center; }
+        .register-card { max-width: 420px; width: 100%; }
+    </style>
+</head>
+<body>
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 register-card">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold text-primary">校园图书馆</h3>
+                            <p class="text-muted">创建新账户</p>
+                        </div>
+
+                        <form id="registerForm">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">用户名</label>
+                                <input type="text" class="form-control" id="username" placeholder="2-80个字符" required autocomplete="username" minlength="2" maxlength="80">
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">密码</label>
+                                <input type="password" class="form-control" id="password" placeholder="至少6位密码" required autocomplete="new-password" minlength="6">
+                            </div>
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">确认密码</label>
+                                <input type="password" class="form-control" id="confirmPassword" placeholder="再次输入密码" required autocomplete="new-password">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" id="registerBtn">注 册</button>
+                        </form>
+
+                        <div class="text-center mt-3">
+                            <span class="text-muted">已有账户？</span>
+                            <a href="login.html" class="text-primary text-decoration-none">立即登录</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        (function () {
+            if (isLoggedIn()) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            const form = document.getElementById('registerForm');
+            const btn = document.getElementById('registerBtn');
+
+            form.addEventListener('submit', async function (e) {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    showToast('两次输入的密码不一致', 'error');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>注册中...';
+
+                const result = await apiPost('/auth/register', { username, password });
+
+                btn.disabled = false;
+                btn.textContent = '注 册';
+
+                if (!result || result.code !== 200) {
+                    showToast(result?.message || '注册失败，请重试', 'error');
+                    return;
+                }
+
+                saveToken(result.data.token);
+                saveUser(result.data.user);
+                showToast('注册成功', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 500);
+            });
+        })();
+    </script>
+</body>
+</html>
