@@ -4,6 +4,60 @@
 
 ---
 
+## [0.3.0] - 2026-05-09
+
+### 新增 · Phase 3 用户生态扩展
+
+#### 评论模块
+- `POST /api/comments` — 发表评论（文本 + 图片URL，敏感词过滤 1005，XSS 清洗）
+- `GET /api/comments?book_id=` — 获取图书评论列表（分页）
+- `POST /api/comments/<id>/like` — 点赞评论
+- `POST /api/comments/<id>/report` — 举报评论（`is_reported=True`）
+- 服务层 `app/services/comment_service.py`
+
+#### 学习中心 + 称号系统
+- `GET /api/learn/questions?book_id=` — 获取图书题目（随机抽样，默认5题）
+- `POST /api/learn/submit` — 提交答题（自动评分，正确率≥80%通过）
+- `POST /api/learn/admin/questions` — 管理员添加题目
+- `GET /api/learn/titles` — 获取用户已获称号列表
+- 自动称号授予：首次借阅→初识书香，累计10本→阅读达人，三体答题通过→三体学者，活着答题通过→文学鉴赏家
+- 0分用户禁止使用学习中心
+- 服务层 `app/services/quiz_service.py`
+
+#### AI 对话
+- `POST /api/ai/chat` — AI 对话（琪露诺人设 + 书名上下文，DeepSeek API 无状态调用）
+- 未配置 API Key 时返回友好提示
+- 服务层 `app/services/ai_service.py`
+
+#### 个性化设置
+- `GET /api/user/settings` — 获取用户设置（theme_color/background/learning_trigger_mode）
+- `POST /api/user/settings` — 更新设置（支持颜色选择、背景图上传、学习触发模式）
+- 背景图上传写入 `image_reviews` 待审核
+- 服务层 `app/services/settings_service.py`
+
+#### 通知系统
+- `GET /api/notifications` — 获取通知列表（含未读数）
+- `GET /api/notifications/unread-count` — 未读计数
+- `POST /api/notifications/<id>/read` — 标记已读
+- `POST /api/notifications/read-all` — 全部标为已读
+- 服务层 `app/services/notification_service.py`
+
+#### 封面与背景
+- **OpenLibrary 封面** — `openlibrary_cover_url(isbn, size)` 自动从 ISBN 获取封面，API 返回 `cover_image_url` 优先本地 → 回退 OpenLibrary
+- **网页背景** — 全部 6 个页面 + 借书机端统一使用 `bg.png` 作为背景（`background-blend-mode: soft-light`）
+
+#### 客户端前端新增
+- **图书详情页** `book.html` — 重写加入评论区（发表/点赞/举报/计数）+ AI 聊天浮动窗（琪露诺气泡对话）+ 答题闯关入口
+- **学习中心** `learn.html` — 题目展示（选择/填空/简答三类渲染）、提交评分、称号展示
+- **个性化设置** `settings.html` — 6 色主题选择器、背景图上传、学习触发模式开关
+- **通知中心** `notifications.html` — 通知列表、未读高亮、单条已读/全部已读
+- **导航栏升级** — index.html + mine.html 加入通知铃铛（红点 + 30s 轮询）+ 设置齿轮入口
+
+#### 种子数据增强
+- 新增 6 道题库题目（三体×3 / 活着×2 / 百年孤独×1）
+
+---
+
 ## [0.2.0] - 2026-05-09
 
 ### 新增 · Phase 2 核心借阅闭环
@@ -135,5 +189,6 @@
 
 | 版本 | 标签 | 日期 | 说明 |
 |------|------|------|------|
+| 0.3.0 | `v0.3.0` | 2026-05-09 | Phase 3 用户生态扩展 |
 | 0.2.0 | `v0.2.0` | 2026-05-09 | Phase 2 核心借阅闭环 |
 | 0.1.0 | `v0.1.0` | 2026-05-09 | Phase 1 骨架搭建 + Redis 缓存层 |
