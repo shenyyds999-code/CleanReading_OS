@@ -141,7 +141,7 @@
                         <div class="card book-card shadow-sm h-100" onclick="window.location.href='book.html?id=${b.id}'">
                             <div class="book-cover">
                                 ${b.cover_image_url
-                                    ? '<img src="' + b.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\'bi bi-book\\'></i>\'">'
+                                    ? '<img src="' + b.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.style.display=\'none\'">'
                                     : '<i class="bi bi-book"></i>'}
                             </div>
                             <div class="card-body">

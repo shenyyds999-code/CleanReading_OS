@@ -148,7 +148,7 @@
 
                 const cover = document.getElementById('bookCover');
                 cover.innerHTML = bookData.cover_image_url
-                    ? '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\"bi bi-book\\"></i>\'">'
+                    ? '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.style.display=\'none\'">'
                     : '<i class="bi bi-book"></i>';
 
                 document.getElementById('bookTitle').textContent = bookData.title;
