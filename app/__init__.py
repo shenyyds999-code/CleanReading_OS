@@ -32,6 +32,21 @@ def create_app(config_class=Config):
     from app.api.return_api import return_bp
     app.register_blueprint(return_bp, url_prefix='/api/return')
 
+    from app.api.comment import comment_bp
+    app.register_blueprint(comment_bp, url_prefix='/api/comments')
+
+    from app.api.learn import learn_bp
+    app.register_blueprint(learn_bp, url_prefix='/api/learn')
+
+    from app.api.ai import ai_bp
+    app.register_blueprint(ai_bp, url_prefix='/api/ai')
+
+    from app.api.settings_api import settings_bp
+    app.register_blueprint(settings_bp, url_prefix='/api/user/settings')
+
+    from app.api.notification import notification_bp
+    app.register_blueprint(notification_bp, url_prefix='/api/notifications')
+
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler = BackgroundScheduler(daemon=True)
     scheduler.add_job(
@@ -145,6 +160,24 @@ def create_app(config_class=Config):
             Title(title_name='文学鉴赏家', description='通过《活着》答题测验', obtain_condition_desc='《活着》答题正确率≥80%'),
         ]
         db.session.add_all(titles)
+        db.session.flush()
+
+        from app.models import QuizQuestion
+        questions = [
+            QuizQuestion(book_id=1, type=1, question_text='《三体》的作者是谁？',
+                         options=['刘慈欣', '余华', '莫言', '马伯庸'], correct_answer_text='A', score=10, created_by=1),
+            QuizQuestion(book_id=1, type=2, question_text='三体人的母星叫什么名字？（填入名称）',
+                         options=None, correct_answer_text='三体星', score=10, created_by=1),
+            QuizQuestion(book_id=1, type=3, question_text='请简述《三体》中"黑暗森林法则"的核心思想',
+                         options=None, correct_answer_text='宇宙就是一座黑暗森林，每个文明都是带枪的猎人', score=20, created_by=1),
+            QuizQuestion(book_id=2, type=1, question_text='《活着》的主角叫什么？',
+                         options=['福贵', '许三观', '孙少平', '刘跃进'], correct_answer_text='A', score=10, created_by=1),
+            QuizQuestion(book_id=2, type=2, question_text='《活着》的作者是谁？',
+                         options=None, correct_answer_text='余华', score=10, created_by=1),
+            QuizQuestion(book_id=3, type=1, question_text='《百年孤独》中布恩迪亚家族生活在哪个虚构小镇？',
+                         options=['马孔多', '桑塔菲', '奥雷里亚诺', '拉美尼亚'], correct_answer_text='A', score=10, created_by=1),
+        ]
+        db.session.add_all(questions)
 
         db.session.commit()
         print('种子数据插入完成！')

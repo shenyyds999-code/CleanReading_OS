@@ -3,6 +3,12 @@ from app import db
 from sqlalchemy import or_
 
 
+def openlibrary_cover_url(isbn, size='M'):
+    if not isbn:
+        return ''
+    return f'https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg'
+
+
 def search_books(query='', search_type='fuzzy', page=1, per_page=20):
     q = Book.query
 
@@ -42,6 +48,7 @@ def get_book(book_id):
 
 
 def _book_dict(book):
+    ol_cover = openlibrary_cover_url(book.isbn, 'M')
     return {
         'id': book.id,
         'title': book.title,
@@ -52,7 +59,8 @@ def _book_dict(book):
         'total_copies': book.total_copies,
         'available_copies': book.available_copies,
         'location': book.location,
-        'cover_image_url': book.cover_image_url,
+        'cover_image_url': book.cover_image_url or ol_cover,
+        'openlibrary_cover': ol_cover,
         'description': book.description,
         'status': book.status,
         'can_borrow': book.available_copies > 0 and book.status == '可借'

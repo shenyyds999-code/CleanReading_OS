@@ -7,11 +7,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #f5f7fa; min-height: 100vh; }
+        body { background: #f5f7fa url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: soft-light; min-height: 100vh; }
         .navbar-brand { font-weight: 700; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
-        .book-cover-lg { width: 100%; height: 350px; object-fit: cover; background: #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #adb5bd; }
+        .book-cover-lg { width: 100%; height: 350px; object-fit: cover; background: #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #adb5bd; border-radius: 8px; overflow: hidden; }
+        .comment-avatar { width: 40px; height: 40px; border-radius: 50%; background: #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: #6c757d; }
+        .comment-item { border-bottom: 1px solid #eee; padding: 16px 0; }
+        .chat-window { position: fixed; bottom: 20px; right: 20px; width: 360px; max-height: 480px; z-index: 1050; display: none; }
+        .chat-body { height: 280px; overflow-y: auto; background: #f8f9fa; }
+        .chat-message { margin-bottom: 8px; max-width: 85%; }
+        .chat-message.user { margin-left: auto; background: #0d6efd; color: #fff; border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
+        .chat-message.ai { margin-right: auto; background: #e9ecef; border-radius: 16px 16px 16px 4px; padding: 10px 14px; }
+        .chat-toggle { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; font-size: 24px; z-index: 1051; }
     </style>
 </head>
 <body>
@@ -35,15 +43,14 @@
             </div>
 
             <div id="detailArea" class="d-none">
+                <a href="index.html" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> 返回</a>
                 <div class="row">
                     <div class="col-md-4 mb-4">
-                        <div id="bookCover" class="book-cover-lg rounded shadow-sm"><i class="bi bi-book"></i></div>
+                        <div id="bookCover" class="book-cover-lg shadow-sm"><i class="bi bi-book"></i></div>
                     </div>
                     <div class="col-md-8">
                         <h2 id="bookTitle"></h2>
-                        <div class="mb-3">
-                            <span id="bookStatus" class="badge fs-6"></span>
-                        </div>
+                        <div class="mb-3"><span id="bookStatus" class="badge fs-6"></span></div>
                         <table class="table table-borderless">
                             <tr><td class="text-muted" style="width:80px;">作者</td><td id="bookAuthor"></td></tr>
                             <tr><td class="text-muted">ISBN</td><td id="bookIsbn"></td></tr>
@@ -53,18 +60,43 @@
                             <tr><td class="text-muted">馆藏</td><td id="bookCopies"></td></tr>
                         </table>
                         <p id="bookDesc" class="text-muted"></p>
-                        <div class="mt-4">
-                            <button id="borrowBtn" class="btn btn-primary btn-lg px-5" disabled>借 阅</button>
+                        <div class="mt-3">
+                            <button id="borrowBtn" class="btn btn-primary btn-lg px-4" disabled>借 阅</button>
                             <span id="borrowInfo" class="text-muted ms-3"></span>
-                        </div>
-                        <div id="borrowedInfo" class="alert alert-success mt-3 d-none">
-                            <i class="bi bi-check-circle me-2"></i><span id="borrowedMsg"></span>
+                            <button class="btn btn-outline-info ms-2" id="quizBtn" onclick="window.location.href='learn.html?book_id='+bookId"><i class="bi bi-pencil-square"></i> 答题闯关</button>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <a href="index.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> 返回搜索</a>
+
+                <hr class="my-4">
+                <h5 class="mb-3"><i class="bi bi-chat-dots me-2"></i>评论区</h5>
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <textarea id="commentInput" class="form-control mb-2" rows="3" placeholder="写下你的评论...（敏感词将被拦截）" maxlength="2000"></textarea>
+                        <button id="commentBtn" class="btn btn-primary btn-sm">发表评论</button>
+                        <small class="text-muted ms-2" id="commentCount">0</small>
+                    </div>
                 </div>
+                <div id="commentList"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn btn-info chat-toggle shadow-lg" id="chatToggleBtn" title="AI 助手 琪露诺">
+        <i class="bi bi-robot text-white"></i>
+    </button>
+    <div class="card shadow-lg chat-window" id="chatWindow">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-snow2 me-1"></i> 琪露诺 · AI 助手</span>
+            <button class="btn-close btn-close-white" id="chatCloseBtn"></button>
+        </div>
+        <div class="card-body chat-body p-3" id="chatBody">
+            <div class="chat-message ai">你好呀~我是琪露诺！有什么关于书的问题尽管问本小姐吧！</div>
+        </div>
+        <div class="card-footer p-2">
+            <div class="input-group">
+                <input type="text" id="chatInput" class="form-control" placeholder="问点什么吧~">
+                <button class="btn btn-info text-white" id="chatSendBtn"><i class="bi bi-send"></i></button>
             </div>
         </div>
     </div>
@@ -72,14 +104,10 @@
     <div class="modal fade" id="confirmModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">确认借阅</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
+                <div class="modal-header"><h5 class="modal-title">确认借阅</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
-                    <p>确认借阅 <strong id="confirmBookTitle"></strong> ？</p>
-                    <p class="text-muted small">应还日期：<span id="confirmDueDate"></span></p>
-                    <p class="text-muted small">借阅天数：<span id="confirmDays"></span> 天</p>
+                    <p>确认借阅 <strong id="confirmBookTitle"></strong>？</p>
+                    <p class="text-muted small">应还日期：<span id="confirmDueDate"></span>（<span id="confirmDays"></span>天）</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
@@ -97,39 +125,31 @@
             if (!user) return;
 
             const params = new URLSearchParams(window.location.search);
-            const bookId = params.get('id');
-            if (!bookId) {
-                window.location.href = 'index.html';
-                return;
-            }
+            const bkId = params.get('id');
+            if (!bkId) { window.location.href = 'index.html'; return; }
+            window.bookId = bkId;
 
             document.getElementById('userDisplay').textContent = user.username;
-            const creditBadge = document.getElementById('creditDisplay');
+            const cb = document.getElementById('creditDisplay');
             const cs = user.credit_score;
-            let cc = 'bg-success';
-            if (cs <= 2) cc = 'bg-danger';
-            else if (cs <= 4) cc = 'bg-warning text-dark';
-            creditBadge.className = 'badge ' + cc + ' credit-badge';
-            creditBadge.textContent = '信誉分: ' + cs;
+            let cc = cs <= 2 ? 'bg-danger' : cs <= 4 ? 'bg-warning text-dark' : 'bg-success';
+            cb.className = 'badge ' + cc + ' credit-badge';
+            cb.textContent = '信誉分: ' + cs;
 
             let bookData = null;
 
             async function loadBook() {
-                const result = await apiGet('/books/' + bookId);
+                const r = await apiGet('/books/' + bkId);
                 document.getElementById('loadingArea').classList.add('d-none');
+                if (!r || r.code !== 200) { showToast('图书不存在', 'error'); return; }
 
-                if (!result || result.code !== 200) {
-                    showToast('图书不存在', 'error');
-                    return;
-                }
-
-                bookData = result.data;
+                bookData = r.data;
                 document.getElementById('detailArea').classList.remove('d-none');
 
-                if (bookData.cover_image_url) {
-                    document.getElementById('bookCover').innerHTML =
-                        '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\"bi bi-book\\"></i>\'">';
-                }
+                const cover = document.getElementById('bookCover');
+                cover.innerHTML = bookData.cover_image_url
+                    ? '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\"bi bi-book\\"></i>\'">'
+                    : '<i class="bi bi-book"></i>';
 
                 document.getElementById('bookTitle').textContent = bookData.title;
                 document.getElementById('bookAuthor').textContent = bookData.author;
@@ -137,79 +157,134 @@
                 document.getElementById('bookCategory').textContent = bookData.category || '-';
                 document.getElementById('bookPublisher').textContent = bookData.publisher || '-';
                 document.getElementById('bookLocation').textContent = bookData.location || '-';
-                document.getElementById('bookCopies').textContent =
-                    bookData.available_copies + ' / ' + bookData.total_copies + ' (可借/总馆藏)';
+                document.getElementById('bookCopies').textContent = bookData.available_copies + ' / ' + bookData.total_copies;
                 document.getElementById('bookDesc').textContent = bookData.description || '暂无简介';
 
-                const statusBadge = document.getElementById('bookStatus');
-                if (bookData.can_borrow) {
-                    statusBadge.className = 'badge bg-success fs-6';
-                    statusBadge.textContent = '可借';
-                } else {
-                    statusBadge.className = 'badge bg-secondary fs-6';
-                    statusBadge.textContent = bookData.available_copies > 0 ? bookData.status : '已借完';
-                }
+                const sb = document.getElementById('bookStatus');
+                sb.className = 'badge fs-6 ' + (bookData.can_borrow ? 'bg-success' : 'bg-secondary');
+                sb.textContent = bookData.can_borrow ? '可借' : (bookData.available_copies > 0 ? bookData.status : '已借完');
 
-                const borrowBtn = document.getElementById('borrowBtn');
-                if (bookData.can_borrow && user.credit_score >= 3) {
-                    borrowBtn.disabled = false;
-                    borrowBtn.textContent = '借 阅';
-                    const days = user.credit_score >= 5 ? 31 : 15;
-                    document.getElementById('borrowInfo').textContent = '借阅期限 ' + days + ' 天';
-                } else if (user.credit_score < 3) {
-                    borrowBtn.disabled = true;
-                    borrowBtn.textContent = '信誉分不足';
-                    document.getElementById('borrowInfo').textContent = '信誉分≥3才可借书';
+                const bb = document.getElementById('borrowBtn');
+                if (bookData.can_borrow && cs >= 3) {
+                    bb.disabled = false;
+                    const days = cs >= 5 ? 31 : 15;
+                    document.getElementById('borrowInfo').textContent = '借阅 ' + days + ' 天';
+                } else if (cs < 3) {
+                    bb.disabled = true; bb.textContent = '信誉分不足';
                 } else {
-                    borrowBtn.disabled = true;
-                    borrowBtn.textContent = '不可借';
+                    bb.disabled = true; bb.textContent = '不可借';
                 }
             }
 
             document.getElementById('borrowBtn').addEventListener('click', function () {
                 if (!bookData) return;
                 const days = user.credit_score >= 5 ? 31 : 15;
-                const dueDate = new Date();
-                dueDate.setDate(dueDate.getDate() + days);
+                const dd = new Date(); dd.setDate(dd.getDate() + days);
                 document.getElementById('confirmBookTitle').textContent = bookData.title;
-                document.getElementById('confirmDueDate').textContent =
-                    dueDate.getFullYear() + '-' + String(dueDate.getMonth() + 1).padStart(2, '0') + '-' + String(dueDate.getDate()).padStart(2, '0');
+                document.getElementById('confirmDueDate').textContent = dd.toISOString().slice(0,10);
                 document.getElementById('confirmDays').textContent = days;
-                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
-                modal.show();
+                new bootstrap.Modal(document.getElementById('confirmModal')).show();
             });
 
             document.getElementById('confirmBorrowBtn').addEventListener('click', async function () {
                 this.disabled = true;
-                this.textContent = '处理中...';
-
-                const result = await apiPost('/borrow/request', { book_id: parseInt(bookId) });
+                const r = await apiPost('/borrow/request', { book_id: parseInt(bkId) });
                 bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
                 this.disabled = false;
-                this.textContent = '确认借阅';
-
-                if (!result || result.code !== 200) {
-                    showToast(result?.message || '借书失败', 'error');
-                    return;
-                }
-
-                const info = result.data;
-                document.getElementById('borrowedInfo').classList.remove('d-none');
-                document.getElementById('borrowedMsg').textContent =
-                    '借阅成功！应还日期：' + info.due_date + '（共' + info.borrow_days + '天）';
+                if (!r || r.code !== 200) { showToast(r?.message || '借书失败', 'error'); return; }
+                showToast('借阅成功！应还：' + r.data.due_date, 'success');
                 document.getElementById('borrowBtn').disabled = true;
                 document.getElementById('borrowBtn').textContent = '已借阅';
-                document.getElementById('borrowInfo').textContent = '';
-
-                showToast('借阅成功！', 'success');
-
                 const refresh = await apiGet('/auth/me');
-                if (refresh && refresh.code === 200) {
-                    saveUser(refresh.data);
-                }
+                if (refresh && refresh.code === 200) saveUser(refresh.data);
             });
 
+            async function loadComments() {
+                const r = await apiGet('/comments?book_id=' + bkId + '&per_page=50');
+                const container = document.getElementById('commentList');
+                document.getElementById('commentCount').textContent = r?.data?.total || 0;
+                if (!r || !r.data || !r.data.items.length) {
+                    container.innerHTML = '<p class="text-muted text-center py-3">暂无评论，来发表第一条吧</p>';
+                    return;
+                }
+                container.innerHTML = r.data.items.map(c => `
+                    <div class="comment-item">
+                        <div class="d-flex align-items-start gap-2">
+                            <div class="comment-avatar"><i class="bi bi-person"></i></div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between">
+                                    <strong class="small">${escHtml(c.username)}</strong>
+                                    <small class="text-muted">${c.created_at}</small>
+                                </div>
+                                <p class="mb-1 mt-1">${escHtml(c.content)}</p>
+                                <div class="d-flex gap-3">
+                                    <a href="#" class="text-decoration-none small like-btn" data-id="${c.id}"><i class="bi bi-hand-thumbs-up"></i> ${c.like_count}</a>
+                                    <a href="#" class="text-decoration-none small text-danger report-btn" data-id="${c.id}"><i class="bi bi-flag"></i> 举报</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`).join('');
+
+                container.querySelectorAll('.like-btn').forEach(b => b.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    const id = this.dataset.id;
+                    const r = await apiPost('/comments/' + id + '/like', {});
+                    if (r && r.code === 200) { this.innerHTML = '<i class="bi bi-hand-thumbs-up-fill"></i> ' + r.data.like_count; }
+                }));
+
+                container.querySelectorAll('.report-btn').forEach(b => b.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    if (!confirm('确认举报该评论？')) return;
+                    const r = await apiPost('/comments/' + this.dataset.id + '/report', {});
+                    if (r && r.code === 200) { this.textContent = '已举报'; this.classList.add('text-muted'); }
+                }));
+            }
+
+            document.getElementById('commentBtn').addEventListener('click', async function () {
+                const content = document.getElementById('commentInput').value.trim();
+                if (!content) { showToast('请输入评论内容', 'warning'); return; }
+                this.disabled = true;
+                const r = await apiPost('/comments', { book_id: parseInt(bkId), content: content });
+                this.disabled = false;
+                if (!r || r.code !== 200) { showToast(r?.message || '发表失败', 'error'); return; }
+                document.getElementById('commentInput').value = '';
+                showToast('评论发表成功！', 'success');
+                loadComments();
+            });
+
+            function escHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+            const chatToggle = document.getElementById('chatToggleBtn');
+            const chatWindow = document.getElementById('chatWindow');
+            const chatClose = document.getElementById('chatCloseBtn');
+            chatToggle.addEventListener('click', () => { chatWindow.style.display = 'block'; chatToggle.style.display = 'none'; });
+            chatClose.addEventListener('click', () => { chatWindow.style.display = 'none'; chatToggle.style.display = 'block'; });
+
+            function addChatMsg(text, type) {
+                const el = document.createElement('div');
+                el.className = 'chat-message ' + type;
+                el.textContent = text;
+                document.getElementById('chatBody').appendChild(el);
+                document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
+            }
+
+            async function sendChat() {
+                const input = document.getElementById('chatInput');
+                const msg = input.value.trim();
+                if (!msg) return;
+                addChatMsg(msg, 'user');
+                input.value = '';
+                document.getElementById('chatSendBtn').disabled = true;
+                const r = await apiPost('/ai/chat', { message: msg, book_title: bookData?.title || '' });
+                document.getElementById('chatSendBtn').disabled = false;
+                const reply = r?.data?.reply || '啊咧，本小姐出故障了~';
+                addChatMsg(reply, 'ai');
+            }
+            document.getElementById('chatSendBtn').addEventListener('click', sendChat);
+            document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
             loadBook();
+            loadComments();
         })();
     </script>
 </body>
