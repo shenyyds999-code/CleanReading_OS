@@ -4,6 +4,64 @@
 
 ---
 
+## [0.2.0] - 2026-05-09
+
+### 新增 · Phase 2 核心借阅闭环
+
+#### 图书管理模块
+- `GET /api/books` — 图书搜索（支持 `?q=&type=fuzzy|exact&page=&per_page=`，缓存 2 分钟）
+- `GET /api/books/<id>` — 图书详情（缓存 2 分钟，借出时自动清除）
+- 服务层 `app/services/book_service.py` — 搜索/详情业务逻辑，返回 `can_borrow` 状态
+
+#### 借书模块
+- `POST /api/borrow/request` — 借书请求（需 `{book_id}`）
+- 信誉分校验：≥5分可借4本/31天，3-4分可借2本/15天，≤2分拒借
+- 馆藏校验：`available_copies > 0` 且 `status == 可借`
+- 借阅上限校验：自动统计当前借阅中记录数
+- 借书成功自动扣减 `available_copies`，归还时恢复
+- 服务层 `app/services/borrow_service.py`
+
+#### 还书模块
+- `POST /api/return/submit` — 还书提交（`multipart/form-data`，图片必填，最多3张，格式校验）
+- 提交后状态 → "已提交归还"，图片写入 `image_reviews` 表待审核
+- `GET /api/return/my` — 我的借阅记录（分页，按借阅日期倒序）
+- `GET /api/return/pending` — 管理员待确认归还列表（`@admin_required`）
+- `POST /api/return/confirm` — 管理员确认归还（支持 完好/轻微污损/严重破损 三级）
+  - 完好：无扣分，直接归档
+  - 轻微污损：扣1分 + 写入 `credit_logs`
+  - 严重破损：扣2分 + 写入 `credit_logs`
+- 服务层 `app/services/return_service.py`
+
+#### 信誉分定时任务
+- APScheduler 后台调度器，每小时检查一次超期记录
+- 每超过应还日期7天自动扣1分
+- 写入 `credit_logs` 和 `notifications` 通知
+- 0分用户不再扣分
+- `app/services/scheduler_service.py` — `check_overdue_and_penalize()` 函数
+
+#### 借书机端后端拦截
+- `app/utils/kiosk.py` — `@kiosk_blocked` 装饰器
+- 检测 `X-Client-Type: kiosk` 请求头
+- 允许：`/api/auth/*`, `/api/borrow/*`, `/api/books/*`, `/api/health`
+- 拦截：`/api/return/submit`, `/api/comment/*`, `/api/learn/*`, `/api/ai/*`, `/api/user/settings`, `/api/donations/*`
+- 拦截返回 `403 借书机端不支持此操作`
+
+#### 客户端前端 (client/) 更新
+- **首页** `index.html` — 重写为图书搜索页：模糊/精确搜索、图书卡片网格、加载/空/阻断三态、信誉分≤2分显示锁定提示
+- **图书详情** `book.html` — 图书信息展示 + 借阅按钮（确认框含应还日期/借阅天数）+ 防重复提交
+- **我的借阅** `mine.html` — 借阅列表表格 + 还书入口（图片上传预览、多图选择、防重复提交、格式/大小校验）
+
+#### 借书机端前端 (kiosk/) 🆕
+- `kiosk/index.html` — 极简触屏借书界面：登录→ISBN搜索→确认借阅→结果展示
+- `kiosk/js/app.js` — 专用工具模块，默认携带 `X-Client-Type: kiosk` 请求头
+- 按钮大尺寸适配触屏，信誉分不足时显示阻断提示
+
+#### 路由更新
+- 借书机端静态文件路由 `/kiosk/` → `kiosk/` 目录
+- 文件上传静态路由 `/uploads/<filename>` → `uploads/` 目录
+
+---
+
 ## [0.1.0] - 2026-05-09
 
 ### 新增 · Phase 1 骨架搭建

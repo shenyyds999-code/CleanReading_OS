@@ -23,6 +23,26 @@ def create_app(config_class=Config):
     from app.api.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
+    from app.api.books import books_bp
+    app.register_blueprint(books_bp, url_prefix='/api/books')
+
+    from app.api.borrow import borrow_bp
+    app.register_blueprint(borrow_bp, url_prefix='/api/borrow')
+
+    from app.api.return_api import return_bp
+    app.register_blueprint(return_bp, url_prefix='/api/return')
+
+    from apscheduler.schedulers.background import BackgroundScheduler
+    scheduler = BackgroundScheduler(daemon=True)
+    scheduler.add_job(
+        func=_overdue_job,
+        trigger='interval',
+        hours=1,
+        id='overdue_check',
+        replace_existing=True
+    )
+    scheduler.start()
+
     @app.route('/api/health')
     def health_check():
         cache_status = 'unknown'
@@ -63,6 +83,7 @@ def create_app(config_class=Config):
         })
 
     client_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'client')
+    kiosk_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'kiosk')
 
     @app.route('/')
     @app.route('/client/<path:filename>')
@@ -74,6 +95,19 @@ def create_app(config_class=Config):
     @app.route('/client/')
     def serve_client_index():
         return send_from_directory(client_dir, 'index.html')
+
+    @app.route('/kiosk/<path:filename>')
+    def serve_kiosk(filename='index.html'):
+        return send_from_directory(kiosk_dir, filename)
+
+    @app.route('/kiosk/')
+    def serve_kiosk_index():
+        return send_from_directory(kiosk_dir, 'index.html')
+
+    @app.route('/uploads/<path:filename>')
+    def serve_uploads(filename):
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+        return send_from_directory(upload_folder, filename)
 
     @app.cli.command('seed')
     def seed_data():
@@ -120,3 +154,13 @@ def create_app(config_class=Config):
         print(f'  已插入 {len(books)} 本图书, {len(titles)} 个称号')
 
     return app
+
+
+def _overdue_job():
+    from app import create_app
+    app = create_app()
+    with app.app_context():
+        from app.services.scheduler_service import check_overdue_and_penalize
+        count = check_overdue_and_penalize()
+        if count:
+            print(f'[Scheduler] 超期扣分完成，共处理 {count} 条记录')

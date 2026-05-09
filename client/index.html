@@ -11,6 +11,12 @@
         .navbar-brand { font-weight: 700; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
+        .search-bar { max-width: 600px; margin: 0 auto; }
+        .book-card { transition: transform .15s; cursor: pointer; }
+        .book-card:hover { transform: translateY(-2px); }
+        .book-cover { height: 200px; object-fit: cover; background: #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #adb5bd; }
+        .status-badge { font-size: 0.75rem; }
+        .blocked-card { max-width: 500px; }
     </style>
 </head>
 <body>
@@ -29,9 +35,12 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="index.html"><i class="bi bi-house"></i> 首页</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="mine.html"><i class="bi bi-person"></i> 我的借阅</a>
+                    </li>
                 </ul>
                 <div class="d-flex align-items-center gap-3">
-                    <span id="creditDisplay" class="badge bg-light text-dark credit-badge"></span>
+                    <span id="creditDisplay" class="badge credit-badge"></span>
                     <span id="userDisplay" class="text-white"></span>
                     <button id="logoutBtn" class="btn btn-outline-light btn-sm">退出</button>
                 </div>
@@ -41,35 +50,48 @@
 
     <div class="main-content">
         <div class="container">
-            <div class="text-center py-5">
-                <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
-                <h2 class="mt-3">欢迎回来</h2>
-                <p class="text-muted" id="welcomeMsg"></p>
-                <p class="text-muted">更多功能即将上线，敬请期待。</p>
+            <div class="search-bar mb-4">
+                <div class="input-group input-group-lg shadow-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="搜索图书名称、作者、ISBN...">
+                    <select id="searchType" class="form-select" style="max-width: 100px;">
+                        <option value="fuzzy">模糊</option>
+                        <option value="exact">精确</option>
+                    </select>
+                    <button id="searchBtn" class="btn btn-primary">搜索</button>
+                </div>
             </div>
 
-            <div class="row mt-4 g-3 justify-content-center">
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 text-center p-4">
-                        <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
-                        <h5 class="mt-2">搜索图书</h5>
-                        <p class="text-muted small">暂未开放</p>
+            <div id="loadingArea" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="text-muted mt-2">正在搜索...</p>
+            </div>
+
+            <div id="blockedArea" class="d-none">
+                <div class="blocked-card mx-auto">
+                    <div class="card border-danger shadow-sm">
+                        <div class="card-body text-center p-4">
+                            <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+                            <h5 class="text-danger mt-3">借阅功能已锁定</h5>
+                            <p class="text-muted">您的信誉分不足，当前无法借书。请通过捐书或等待信誉恢复。</p>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 text-center p-4">
-                        <i class="bi bi-chat-dots text-primary" style="font-size: 2rem;"></i>
-                        <h5 class="mt-2">AI 助手</h5>
-                        <p class="text-muted small">暂未开放</p>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card shadow-sm border-0 text-center p-4">
-                        <i class="bi bi-trophy text-primary" style="font-size: 2rem;"></i>
-                        <h5 class="mt-2">学习中心</h5>
-                        <p class="text-muted small">暂未开放</p>
-                    </div>
-                </div>
+            </div>
+
+            <div id="bookList" class="row g-4"></div>
+
+            <div id="emptyArea" class="text-center py-5 d-none">
+                <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">没有找到相关图书</p>
+            </div>
+
+            <div id="welcomeArea" class="text-center py-5">
+                <i class="bi bi-book text-primary" style="font-size: 4rem;"></i>
+                <h2 class="mt-3">欢迎来到校园图书馆</h2>
+                <p class="text-muted">在上方搜索框输入书名开始探索</p>
             </div>
         </div>
     </div>
@@ -82,18 +104,89 @@
             if (!user) return;
 
             document.getElementById('userDisplay').textContent = user.username;
-            document.getElementById('welcomeMsg').textContent = '你好，' + user.username + '！这是图书馆客户端首页。';
 
             const creditBadge = document.getElementById('creditDisplay');
+            const creditScore = user.credit_score;
             let creditColor = 'bg-success';
-            if (user.credit_score <= 2) creditColor = 'bg-danger';
-            else if (user.credit_score <= 4) creditColor = 'bg-warning text-dark';
+            if (creditScore <= 2) creditColor = 'bg-danger';
+            else if (creditScore <= 4) creditColor = 'bg-warning text-dark';
             creditBadge.className = 'badge ' + creditColor + ' credit-badge';
-            creditBadge.textContent = '信誉分: ' + user.credit_score;
+            creditBadge.textContent = '信誉分: ' + creditScore;
 
-            document.getElementById('logoutBtn').addEventListener('click', function () {
+            if (creditScore <= 2) {
+                document.getElementById('blockedArea').classList.remove('d-none');
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', async function () {
+                await apiPost('/auth/logout', {});
                 clearAuth();
                 window.location.href = 'login.html';
+            });
+
+            function renderBooks(books) {
+                const container = document.getElementById('bookList');
+                container.innerHTML = '';
+                books.forEach(b => {
+                    const statusBadge = b.can_borrow
+                        ? '<span class="badge bg-success status-badge">可借</span>'
+                        : '<span class="badge bg-secondary status-badge">' + (b.available_copies > 0 ? b.status : '已借完') + '</span>';
+                    const col = document.createElement('div');
+                    col.className = 'col-6 col-md-4 col-lg-3';
+                    col.innerHTML = `
+                        <div class="card book-card shadow-sm h-100" onclick="window.location.href='book.html?id=${b.id}'">
+                            <div class="book-cover">
+                                ${b.cover_image_url
+                                    ? '<img src="' + b.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\'bi bi-book\\'></i>\'">'
+                                    : '<i class="bi bi-book"></i>'}
+                            </div>
+                            <div class="card-body">
+                                <h6 class="card-title text-truncate mb-1">${escapeHtml(b.title)}</h6>
+                                <p class="card-text text-muted small mb-2 text-truncate">${escapeHtml(b.author)}</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    ${statusBadge}
+                                    <small class="text-muted">${b.available_copies}/${b.total_copies}</small>
+                                </div>
+                            </div>
+                        </div>`;
+                    container.appendChild(col);
+                });
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            async function doSearch() {
+                const q = document.getElementById('searchInput').value.trim();
+                const type = document.getElementById('searchType').value;
+
+                document.getElementById('welcomeArea').classList.add('d-none');
+                document.getElementById('emptyArea').classList.add('d-none');
+                document.getElementById('bookList').innerHTML = '';
+                document.getElementById('loadingArea').classList.remove('d-none');
+
+                const result = await apiGet('/books?q=' + encodeURIComponent(q) + '&type=' + type + '&per_page=24');
+                document.getElementById('loadingArea').classList.add('d-none');
+
+                if (!result || result.code !== 200) {
+                    showToast('搜索失败', 'error');
+                    return;
+                }
+
+                const data = result.data;
+                if (!data.items || data.items.length === 0) {
+                    document.getElementById('emptyArea').classList.remove('d-none');
+                    return;
+                }
+
+                renderBooks(data.items);
+            }
+
+            document.getElementById('searchBtn').addEventListener('click', doSearch);
+            document.getElementById('searchInput').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') doSearch();
             });
         })();
     </script>

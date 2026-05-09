@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图书详情 - 校园图书馆</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body { background: #f5f7fa; min-height: 100vh; }
+        .navbar-brand { font-weight: 700; }
+        .credit-badge { font-size: 0.85rem; }
+        .main-content { padding-top: 80px; padding-bottom: 40px; }
+        .book-cover-lg { width: 100%; height: 350px; object-fit: cover; background: #dee2e6; display: flex; align-items: center; justify-content: center; font-size: 5rem; color: #adb5bd; }
+    </style>
+</head>
+<body>
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="index.html"><i class="bi bi-book me-2"></i>校园图书馆</a>
+            <div class="d-flex align-items-center gap-3">
+                <span id="creditDisplay" class="badge credit-badge"></span>
+                <span id="userDisplay" class="text-white"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div id="loadingArea" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2">加载中...</p>
+            </div>
+
+            <div id="detailArea" class="d-none">
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div id="bookCover" class="book-cover-lg rounded shadow-sm"><i class="bi bi-book"></i></div>
+                    </div>
+                    <div class="col-md-8">
+                        <h2 id="bookTitle"></h2>
+                        <div class="mb-3">
+                            <span id="bookStatus" class="badge fs-6"></span>
+                        </div>
+                        <table class="table table-borderless">
+                            <tr><td class="text-muted" style="width:80px;">作者</td><td id="bookAuthor"></td></tr>
+                            <tr><td class="text-muted">ISBN</td><td id="bookIsbn"></td></tr>
+                            <tr><td class="text-muted">分类</td><td id="bookCategory"></td></tr>
+                            <tr><td class="text-muted">出版社</td><td id="bookPublisher"></td></tr>
+                            <tr><td class="text-muted">位置</td><td id="bookLocation"></td></tr>
+                            <tr><td class="text-muted">馆藏</td><td id="bookCopies"></td></tr>
+                        </table>
+                        <p id="bookDesc" class="text-muted"></p>
+                        <div class="mt-4">
+                            <button id="borrowBtn" class="btn btn-primary btn-lg px-5" disabled>借 阅</button>
+                            <span id="borrowInfo" class="text-muted ms-3"></span>
+                        </div>
+                        <div id="borrowedInfo" class="alert alert-success mt-3 d-none">
+                            <i class="bi bi-check-circle me-2"></i><span id="borrowedMsg"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="index.html" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> 返回搜索</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认借阅</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确认借阅 <strong id="confirmBookTitle"></strong> ？</p>
+                    <p class="text-muted small">应还日期：<span id="confirmDueDate"></span></p>
+                    <p class="text-muted small">借阅天数：<span id="confirmDays"></span> 天</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmBorrowBtn">确认借阅</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script>
+        (function () {
+            const user = checkAuthAndRedirect();
+            if (!user) return;
+
+            const params = new URLSearchParams(window.location.search);
+            const bookId = params.get('id');
+            if (!bookId) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            document.getElementById('userDisplay').textContent = user.username;
+            const creditBadge = document.getElementById('creditDisplay');
+            const cs = user.credit_score;
+            let cc = 'bg-success';
+            if (cs <= 2) cc = 'bg-danger';
+            else if (cs <= 4) cc = 'bg-warning text-dark';
+            creditBadge.className = 'badge ' + cc + ' credit-badge';
+            creditBadge.textContent = '信誉分: ' + cs;
+
+            let bookData = null;
+
+            async function loadBook() {
+                const result = await apiGet('/books/' + bookId);
+                document.getElementById('loadingArea').classList.add('d-none');
+
+                if (!result || result.code !== 200) {
+                    showToast('图书不存在', 'error');
+                    return;
+                }
+
+                bookData = result.data;
+                document.getElementById('detailArea').classList.remove('d-none');
+
+                if (bookData.cover_image_url) {
+                    document.getElementById('bookCover').innerHTML =
+                        '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.parentElement.innerHTML=\'<i class=\\"bi bi-book\\"></i>\'">';
+                }
+
+                document.getElementById('bookTitle').textContent = bookData.title;
+                document.getElementById('bookAuthor').textContent = bookData.author;
+                document.getElementById('bookIsbn').textContent = bookData.isbn;
+                document.getElementById('bookCategory').textContent = bookData.category || '-';
+                document.getElementById('bookPublisher').textContent = bookData.publisher || '-';
+                document.getElementById('bookLocation').textContent = bookData.location || '-';
+                document.getElementById('bookCopies').textContent =
+                    bookData.available_copies + ' / ' + bookData.total_copies + ' (可借/总馆藏)';
+                document.getElementById('bookDesc').textContent = bookData.description || '暂无简介';
+
+                const statusBadge = document.getElementById('bookStatus');
+                if (bookData.can_borrow) {
+                    statusBadge.className = 'badge bg-success fs-6';
+                    statusBadge.textContent = '可借';
+                } else {
+                    statusBadge.className = 'badge bg-secondary fs-6';
+                    statusBadge.textContent = bookData.available_copies > 0 ? bookData.status : '已借完';
+                }
+
+                const borrowBtn = document.getElementById('borrowBtn');
+                if (bookData.can_borrow && user.credit_score >= 3) {
+                    borrowBtn.disabled = false;
+                    borrowBtn.textContent = '借 阅';
+                    const days = user.credit_score >= 5 ? 31 : 15;
+                    document.getElementById('borrowInfo').textContent = '借阅期限 ' + days + ' 天';
+                } else if (user.credit_score < 3) {
+                    borrowBtn.disabled = true;
+                    borrowBtn.textContent = '信誉分不足';
+                    document.getElementById('borrowInfo').textContent = '信誉分≥3才可借书';
+                } else {
+                    borrowBtn.disabled = true;
+                    borrowBtn.textContent = '不可借';
+                }
+            }
+
+            document.getElementById('borrowBtn').addEventListener('click', function () {
+                if (!bookData) return;
+                const days = user.credit_score >= 5 ? 31 : 15;
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + days);
+                document.getElementById('confirmBookTitle').textContent = bookData.title;
+                document.getElementById('confirmDueDate').textContent =
+                    dueDate.getFullYear() + '-' + String(dueDate.getMonth() + 1).padStart(2, '0') + '-' + String(dueDate.getDate()).padStart(2, '0');
+                document.getElementById('confirmDays').textContent = days;
+                const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+                modal.show();
+            });
+
+            document.getElementById('confirmBorrowBtn').addEventListener('click', async function () {
+                this.disabled = true;
+                this.textContent = '处理中...';
+
+                const result = await apiPost('/borrow/request', { book_id: parseInt(bookId) });
+                bootstrap.Modal.getInstance(document.getElementById('confirmModal')).hide();
+                this.disabled = false;
+                this.textContent = '确认借阅';
+
+                if (!result || result.code !== 200) {
+                    showToast(result?.message || '借书失败', 'error');
+                    return;
+                }
+
+                const info = result.data;
+                document.getElementById('borrowedInfo').classList.remove('d-none');
+                document.getElementById('borrowedMsg').textContent =
+                    '借阅成功！应还日期：' + info.due_date + '（共' + info.borrow_days + '天）';
+                document.getElementById('borrowBtn').disabled = true;
+                document.getElementById('borrowBtn').textContent = '已借阅';
+                document.getElementById('borrowInfo').textContent = '';
+
+                showToast('借阅成功！', 'success');
+
+                const refresh = await apiGet('/auth/me');
+                if (refresh && refresh.code === 200) {
+                    saveUser(refresh.data);
+                }
+            });
+
+            loadBook();
+        })();
+    </script>
+</body>
+</html>
