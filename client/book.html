@@ -29,7 +29,7 @@
         .card-footer { background: #363b3f; border-color: #4a5056; }
         .card-header { background: #363b3f; border-color: #4a5056; }
         .table { color: #e0e0e0; }
-        .table td { color: #bbb; }
+        .table td { color: #e0e0e0; }
         .text-muted { color: #888 !important; }
         h2, h5 { color: #e0e0e0; }
         .form-control, textarea { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
@@ -74,26 +74,30 @@
 
             <div id="detailArea" class="d-none">
                 <a href="index.html" class="btn btn-outline-secondary mb-3"><i class="bi bi-arrow-left"></i> 返回</a>
-                <div class="row">
-                    <div class="col-md-4 mb-4">
-                        <div id="bookCover" class="book-cover-lg shadow-sm"><i class="bi bi-book"></i></div>
-                    </div>
-                    <div class="col-md-8">
-                        <h2 id="bookTitle"></h2>
-                        <div class="mb-3"><span id="bookStatus" class="badge fs-6"></span></div>
-                        <table class="table table-borderless">
-                            <tr><td class="text-muted" style="width:80px;">作者</td><td id="bookAuthor"></td></tr>
-                            <tr><td class="text-muted">ISBN</td><td id="bookIsbn"></td></tr>
-                            <tr><td class="text-muted">分类</td><td id="bookCategory"></td></tr>
-                            <tr><td class="text-muted">出版社</td><td id="bookPublisher"></td></tr>
-                            <tr><td class="text-muted">位置</td><td id="bookLocation"></td></tr>
-                            <tr><td class="text-muted">馆藏</td><td id="bookCopies"></td></tr>
-                        </table>
-                        <p id="bookDesc" class="text-muted"></p>
-                        <div class="mt-3">
-                            <button id="borrowBtn" class="btn btn-primary btn-lg px-4" disabled>借 阅</button>
-                            <span id="borrowInfo" class="text-muted ms-3"></span>
-                            <button class="btn btn-outline-info ms-2" id="quizBtn" onclick="window.location.href='learn.html?book_id='+bookId"><i class="bi bi-pencil-square"></i> 答题闯关</button>
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-md-4 mb-4 mb-md-0">
+                                <div id="bookCover" class="book-cover-lg shadow-sm"><i class="bi bi-book"></i></div>
+                            </div>
+                            <div class="col-md-8">
+                                <h2 id="bookTitle"></h2>
+                                <div class="mb-3"><span id="bookStatus" class="badge fs-6"></span></div>
+                                <table class="table table-borderless">
+                                    <tr><td class="text-muted" style="width:80px;">作者</td><td id="bookAuthor" style="color:#e0e0e0;"></td></tr>
+                                    <tr><td class="text-muted">ISBN</td><td id="bookIsbn" style="color:#e0e0e0;"></td></tr>
+                                    <tr><td class="text-muted">分类</td><td id="bookCategory" style="color:#e0e0e0;"></td></tr>
+                                    <tr><td class="text-muted">出版社</td><td id="bookPublisher" style="color:#e0e0e0;"></td></tr>
+                                    <tr><td class="text-muted">位置</td><td id="bookLocation" style="color:#e0e0e0;"></td></tr>
+                                    <tr><td class="text-muted">馆藏</td><td id="bookCopies" style="color:#e0e0e0;"></td></tr>
+                                </table>
+                                <p id="bookDesc" style="color:#ccc;"></p>
+                                <div class="mt-3">
+                                    <button id="borrowBtn" class="btn btn-primary btn-lg px-4" disabled>借 阅</button>
+                                    <span id="borrowInfo" class="text-muted ms-3"></span>
+                                    <button class="btn btn-outline-info ms-2" id="quizBtn" onclick="window.location.href='learn.html?book_id='+bookId"><i class="bi bi-pencil-square"></i> 答题闯关</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
