@@ -28,6 +28,10 @@
         .form-control:focus { background: #363b3f; border-color: #FF6699; color: #e0e0e0; }
         .modal-content { background: #363b3f; border-color: #4a5056; color: #e0e0e0; }
         .modal-header, .modal-footer { border-color: #4a5056; }
+        .badge.bg-success { background: #1a3a2a !important; color: #4ade80; }
+        .badge.bg-primary { background: #1a2a3a !important; color: #7eb8ff; }
+        .badge.bg-warning { background: #3a3010 !important; color: #f0a040; }
+        .badge.bg-danger { background: #3a1a1a !important; color: #f87171; }
     </style>
 </head>
 <body>
@@ -70,8 +74,8 @@
 
             <div id="recordList" class="d-none">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle bg-white shadow-sm rounded">
-                        <thead class="table-light">
+                    <table class="table table-hover align-middle shadow-sm rounded" style="background:#363b3f;">
+                        <thead style="background:#24272a;color:#bbb;">
                             <tr>
                                 <th>图书</th>
                                 <th>借阅日期</th>

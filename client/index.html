@@ -30,6 +30,8 @@
         .btn-outline-light:hover { background: #FF6699; border-color: #FF6699; color: #fff; }
         #welcomeArea h2 { color: #e0e0e0; }
         #welcomeArea p { color: #888; }
+        .badge.bg-success { background: #1a3a2a !important; color: #4ade80; }
+        .badge.bg-secondary { background: #4a5056 !important; color: #ccc; }
     </style>
 </head>
 <body>
@@ -70,9 +72,9 @@
         <div class="container">
             <div class="search-bar mb-4">
                 <div class="input-group input-group-lg shadow-sm">
-                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="搜索图书名称、作者、ISBN...">
-                    <select id="searchType" class="form-select" style="max-width: 100px;">
+                    <span class="input-group-text border-end-0" style="background:#24272a;border-color:#4a5056;color:#888;"><i class="bi bi-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="搜索图书名称、作者、ISBN..." style="background:#24272a;border-color:#4a5056;color:#e0e0e0;">
+                    <select id="searchType" class="form-select" style="max-width:100px;background:#24272a;border-color:#4a5056;color:#e0e0e0;">
                         <option value="fuzzy">模糊</option>
                         <option value="exact">精确</option>
                     </select>
