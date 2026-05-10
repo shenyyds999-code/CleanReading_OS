@@ -1,6 +1,6 @@
 import os
 import time
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, redirect
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -111,6 +111,9 @@ def create_app(config_class=Config):
     admin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'admin')
 
     @app.route('/')
+    def root_redirect():
+        return redirect('/client/')
+
     @app.route('/client/<path:filename>')
     def serve_client(filename=''):
         if not filename:
