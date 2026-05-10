@@ -20,6 +20,9 @@ def create_app(config_class=Config):
 
     from app import models  # noqa: F401
 
+    with app.app_context():
+        db.create_all()
+
     from app.api.auth import auth_bp
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
@@ -46,6 +49,12 @@ def create_app(config_class=Config):
 
     from app.api.notification import notification_bp
     app.register_blueprint(notification_bp, url_prefix='/api/notifications')
+
+    from app.api.admin_api import admin_bp
+    app.register_blueprint(admin_bp, url_prefix='/api/admin')
+
+    from app.api.system_api import system_bp
+    app.register_blueprint(system_bp, url_prefix='/api/system')
 
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler = BackgroundScheduler(daemon=True)
@@ -99,6 +108,7 @@ def create_app(config_class=Config):
 
     client_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'client')
     kiosk_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'kiosk')
+    admin_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'admin')
 
     @app.route('/')
     @app.route('/client/<path:filename>')
@@ -118,6 +128,14 @@ def create_app(config_class=Config):
     @app.route('/kiosk/')
     def serve_kiosk_index():
         return send_from_directory(kiosk_dir, 'index.html')
+
+    @app.route('/admin/<path:filename>')
+    def serve_admin(filename='index.html'):
+        return send_from_directory(admin_dir, filename)
+
+    @app.route('/admin/')
+    def serve_admin_index():
+        return send_from_directory(admin_dir, 'index.html')
 
     @app.route('/uploads/<path:filename>')
     def serve_uploads(filename):
@@ -178,6 +196,9 @@ def create_app(config_class=Config):
                          options=['马孔多', '桑塔菲', '奥雷里亚诺', '拉美尼亚'], correct_answer_text='A', score=10, created_by=1),
         ]
         db.session.add_all(questions)
+
+        from app.models import SystemConfig
+        db.session.add(SystemConfig(config_key='site_name', config_value='CleanReading OS'))
 
         db.session.commit()
         print('种子数据插入完成！')

@@ -14,6 +14,10 @@
         .card a { color: #7eb8ff; }
         .form-control { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
         .form-control:focus { background: #363b3f; border-color: #FF6699; color: #e0e0e0; box-shadow: 0 0 0 0.2rem rgba(255,102,153,0.25); }
+        .form-control::placeholder { color: #888; }
+        .form-control:-webkit-autofill,
+        .form-control:-webkit-autofill:hover,
+        .form-control:-webkit-autofill:focus { -webkit-text-fill-color: #e0e0e0; -webkit-box-shadow: 0 0 0 1000px #24272a inset; transition: background-color 5000s ease-in-out 0s; }
         .form-label { color: #bbb; }
         .btn-primary { background: #FF6699; border-color: #FF6699; }
         .btn-primary:hover { background: #e05580; border-color: #e05580; }
@@ -30,7 +34,7 @@
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <h3 class="fw-bold text-primary">校园图书馆</h3>
+                            <h3 class="fw-bold text-primary"><span class="site-name">校园图书馆</span></h3>
                             <p class="text-muted">创建新账户</p>
                         </div>
 

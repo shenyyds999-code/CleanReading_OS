@@ -57,6 +57,27 @@ async function apiGet(url) {
     return data;
 }
 
+function loadSiteName() {
+    fetch(API_BASE + '/system/config')
+        .then(r => r.json())
+        .then(data => {
+            if (data.code === 200 && data.data.site_name) {
+                var name = data.data.site_name;
+                document.title = document.title.replace(/校园图书馆/g, name);
+                var els = document.querySelectorAll('.site-name');
+                for (var i = 0; i < els.length; i++) { els[i].textContent = name; }
+            }
+        }).catch(function() {});
+}
+
+(function () {
+    var style = document.createElement('style');
+    style.textContent = '.site-name { color: #FF6699 !important; }';
+    document.head.appendChild(style);
+})();
+
+loadSiteName();
+
 async function apiPost(url, body) {
     const response = await fetch(API_BASE + url, {
         method: 'POST',

@@ -1,12 +1,52 @@
 from app.models import Book
 from app import db
 from sqlalchemy import or_
+import requests
 
 
 def openlibrary_cover_url(isbn, size='M'):
     if not isbn:
         return ''
     return f'https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg'
+
+
+def isbn_lookup(isbn):
+    isbn = (isbn or '').strip()
+    if not isbn:
+        return None, 'ISBN不能为空'
+
+    try:
+        resp = requests.get(
+            f'https://openlibrary.org/isbn/{isbn}.json',
+            timeout=(3, 5),
+            headers={'User-Agent': 'ClearReading/1.0'}
+        )
+        if resp.status_code == 404:
+            return None, '未找到该ISBN对应的图书信息'
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.Timeout:
+        return None, '查询超时，请重试'
+    except requests.RequestException:
+        return None, '查询OpenLibrary失败，请检查网络'
+
+    result = {
+        'isbn': isbn,
+        'title': data.get('title', ''),
+        'author': '',
+        'publisher': '',
+        'cover_url': openlibrary_cover_url(isbn, 'M'),
+    }
+
+    authors = data.get('authors', [])
+    if authors:
+        result['author'] = authors[0].get('name', '')
+
+    publishers = data.get('publishers', [])
+    if publishers:
+        result['publisher'] = publishers[0]
+
+    return result, None, None
 
 
 def search_books(query='', search_type='fuzzy', page=1, per_page=20):

@@ -23,6 +23,12 @@ def check_can_borrow(user, book):
     if book.status != '可借':
         return None, '该图书当前不可借', 1003
 
+    already_borrowed = BorrowRecord.query.filter_by(
+        user_id=user.id, book_id=book.id, status='借阅中'
+    ).first()
+    if already_borrowed:
+        return None, '你已经借了这本书，请先归还后再借', 1004
+
     active_count = BorrowRecord.query.filter_by(
         user_id=user.id, status='借阅中'
     ).count()
@@ -31,6 +37,13 @@ def check_can_borrow(user, book):
         return None, f'借阅数量已达上限（{limit["max_books"]}本）', 1002
 
     return limit, None, None
+
+
+def is_book_borrowed_by_user(user_id, book_id):
+    record = BorrowRecord.query.filter_by(
+        user_id=user_id, book_id=book_id, status='借阅中'
+    ).first()
+    return record is not None
 
 
 def borrow_book(user, book):

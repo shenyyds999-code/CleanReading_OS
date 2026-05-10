@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 校园图书馆</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root { --sidebar-w: 240px; --bg: #1a1d21; --card-bg: #24272a; --border: #3a3f44; --text: #e0e0e0; --muted: #999; --accent: #FF6699; }
+        body { background: var(--bg) url('img/bg-admin.png') center/cover fixed no-repeat; background-blend-mode: overlay; color: var(--text); min-height: 100vh; font-family: system-ui, -apple-system, sans-serif; }
+        .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh; background: #1e2125; border-right: 1px solid var(--border); z-index: 1000; overflow-y: auto; }
+        .sidebar-header { padding: 1.25rem; border-bottom: 1px solid var(--border); }
+        .sidebar-header h5 { color: var(--accent); margin: 0; font-weight: 700; }
+        .sidebar-header small { color: var(--muted); }
+        .sidebar-nav { padding: 0.75rem 0; }
+        .sidebar-nav .nav-link { color: #aaa; padding: 0.6rem 1.25rem; border-left: 3px solid transparent; font-size: 0.9rem; transition: all .15s; }
+        .sidebar-nav .nav-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .sidebar-nav .nav-link.active { color: var(--accent); background: rgba(255,102,153,0.1); border-left-color: var(--accent); }
+        .sidebar-nav .nav-link i { width: 20px; text-align: center; margin-right: 8px; }
+        .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); position: absolute; bottom: 0; width: 100%; }
+        .main { margin-left: var(--sidebar-w); min-height: 100vh; }
+        .topbar { background: #1e2125; border-bottom: 1px solid var(--border); padding: 0.75rem 1.5rem; position: sticky; top: 0; z-index: 999; }
+        .content { padding: 1.5rem; }
+        .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem; transition: all .15s; }
+        .stat-card:hover { border-color: #555; }
+        .stat-card .stat-icon { font-size: 2rem; }
+        .stat-card .stat-value { font-size: 1.75rem; font-weight: 700; }
+        .stat-card .stat-label { color: var(--muted); font-size: 0.85rem; }
+        .card { background: var(--card-bg); border: 1px solid var(--border); }
+        .card-header { background: #1e2125; border-bottom: 1px solid var(--border); color: var(--text); }
+        .table { color: var(--text); }
+        .table > :not(caption) > * > * { background: transparent; border-bottom-color: var(--border); color: var(--text); }
+        .table > thead > tr > th { color: #aaa; font-weight: 600; border-bottom: 2px solid var(--border); }
+        .table > tbody > tr:hover { background: rgba(255,255,255,0.03); }
+        .form-control, .form-select { background: #1a1d21; border-color: var(--border); color: var(--text); }
+        .form-control:focus, .form-select:focus { background: #1a1d21; border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 0.2rem rgba(255,102,153,0.15); }
+        .form-label { color: #ccc; }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: #e05580; border-color: #e05580; }
+        .btn-outline-primary { color: var(--accent); border-color: var(--accent); }
+        .btn-outline-primary:hover { background: var(--accent); color: #fff; }
+        .badge { font-weight: 500; }
+        .pagination .page-link { background: var(--card-bg); border-color: var(--border); color: var(--text); }
+        .pagination .page-link:hover { background: #363b3f; color: #fff; }
+        .pagination .active .page-link { background: var(--accent); border-color: var(--accent); }
+        .modal-content { background: var(--card-bg); border-color: var(--border); }
+        .modal-header, .modal-footer { border-color: var(--border); }
+        .image-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; }
+        .nav-pills .nav-link { color: #aaa; }
+        .nav-pills .nav-link.active { background: var(--accent); }
+        .section-title { font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+        .section-title i { color: var(--accent); }
+        @media (max-width: 768px) { .sidebar { display: none; } .main { margin-left: 0; } }
+    </style>
+</head>
+<body>
+    <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
+
+    <aside class="sidebar d-flex flex-column">
+        <div class="sidebar-header">
+            <h5><i class="bi bi-shield-lock me-2"></i>管理后台</h5>
+            <small id="sidebarUsername"></small>
+        </div>
+        <nav class="sidebar-nav flex-grow-1">
+            <a href="#" class="nav-link active" data-panel="dashboard"><i class="bi bi-speedometer2"></i> 仪表盘</a>
+            <a href="#" class="nav-link" data-panel="books"><i class="bi bi-book"></i> 书籍管理</a>
+            <a href="#" class="nav-link" data-panel="returns"><i class="bi bi-arrow-return-left"></i> 还书审核</a>
+            <a href="#" class="nav-link" data-panel="donations"><i class="bi bi-gift"></i> 捐书审核</a>
+            <a href="#" class="nav-link" data-panel="images"><i class="bi bi-image"></i> 图片审核</a>
+            <a href="#" class="nav-link" data-panel="comments"><i class="bi bi-chat-dots"></i> 评论管理</a>
+            <a href="#" class="nav-link super-only" data-panel="users" style="display:none;"><i class="bi bi-people"></i> 用户管理</a>
+        </nav>
+        <div class="sidebar-footer">
+            <button class="btn btn-outline-secondary btn-sm w-100" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i>退出登录</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="topbar d-flex align-items-center justify-content-between">
+            <span class="fw-semibold"><span id="topbarTitle">仪表盘</span></span>
+            <div class="d-flex align-items-center gap-3">
+                <span id="roleTag"></span>
+                <span class="text-muted small" id="topbarUser"></span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div id="panel-loading" class="text-center py-5"><div class="spinner-border" style="color:var(--accent)"></div></div>
+
+            <div id="panel-dashboard" class="d-none">
+                <div class="row g-3 mb-4" id="statCards"></div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card"><div class="card-header"><i class="bi bi-clock-history me-2"></i>快速操作</div>
+                            <div class="card-body">
+                                <a href="#" class="btn btn-outline-primary btn-sm me-2 mb-2 nav-switch" data-panel="books"><i class="bi bi-plus-circle"></i> 添加书籍</a>
+                                <a href="#" class="btn btn-outline-primary btn-sm me-2 mb-2 nav-switch" data-panel="returns"><i class="bi bi-check-circle"></i> 审核还书</a>
+                                <a href="#" class="btn btn-outline-primary btn-sm me-2 mb-2 nav-switch" data-panel="donations"><i class="bi bi-gift"></i> 审核捐书</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card"><div class="card-header"><i class="bi bi-info-circle me-2"></i>系统信息</div>
+                            <div class="card-body" id="sysInfo" style="font-size:0.9rem;color:#999;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-3 mt-3" id="sysConfigRow" style="display:none;">
+                    <div class="col-md-6">
+                        <div class="card"><div class="card-header"><i class="bi bi-sliders me-2"></i>系统配置</div>
+                            <div class="card-body">
+                                <div class="row align-items-end g-2">
+                                    <div class="col-md-12">
+                                        <label class="form-label">站点名称</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="sysSiteNameInput">
+                                            <button class="btn btn-primary" id="saveSiteNameBtn">保存</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="panel-books" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-book me-2"></i>书籍管理</h6>
+                    <div class="d-flex gap-2">
+                        <input type="text" class="form-control form-control-sm" id="bookSearch" placeholder="搜索书名/作者/ISBN..." style="width:240px;">
+                        <button class="btn btn-primary btn-sm" id="addBookBtn"><i class="bi bi-plus-lg"></i> 新书录入</button>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>ID</th><th>书名</th><th>作者</th><th>ISBN</th><th>分类</th><th>馆藏</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody id="bookTableBody"></tbody>
+                    </table>
+                </div>
+                <nav id="bookPagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+
+            <div id="panel-returns" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-arrow-return-left me-2"></i>还书审核</h6>
+                    <select class="form-select form-select-sm" id="returnFilter" style="width:160px;">
+                        <option value="">全部状态</option>
+                        <option value="已提交归还">待审核</option>
+                        <option value="已归还">已归还</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>ID</th><th>用户</th><th>书名</th><th>借阅日期</th><th>归还日期</th><th>照片</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody id="returnTableBody"></tbody>
+                    </table>
+                </div>
+                <nav id="returnPagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+
+            <div id="panel-donations" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-gift me-2"></i>捐书审核</h6>
+                    <select class="form-select form-select-sm" id="donationFilter" style="width:160px;">
+                        <option value="">全部状态</option>
+                        <option value="待审核">待审核</option>
+                        <option value="已审核">已通过</option>
+                        <option value="已拒绝">已拒绝</option>
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>ID</th><th>用户</th><th>书名</th><th>损坏描述</th><th>照片</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody id="donationTableBody"></tbody>
+                    </table>
+                </div>
+                <nav id="donationPagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+
+            <div id="panel-images" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-image me-2"></i>图片审核</h6>
+                    <select class="form-select form-select-sm" id="imageFilter" style="width:160px;">
+                        <option value="">全部</option>
+                        <option value="待审核">待审核</option>
+                        <option value="已通过">已通过</option>
+                        <option value="已拒绝">已拒绝</option>
+                    </select>
+                </div>
+                <div class="row g-3" id="imageGrid"></div>
+                <nav id="imagePagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+
+            <div id="panel-comments" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-chat-dots me-2"></i>评论管理</h6>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="reportedOnly">
+                        <label class="form-check-label" for="reportedOnly">仅显示被举报</label>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>ID</th><th>用户</th><th>书籍</th><th>内容</th><th>点赞</th><th>状态</th><th>操作</th></tr></thead>
+                        <tbody id="commentTableBody"></tbody>
+                    </table>
+                </div>
+                <nav id="commentPagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+
+            <div id="panel-users" class="d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="section-title"><i class="bi bi-people me-2"></i>用户管理</h6>
+                    <input type="text" class="form-control form-control-sm" id="userSearch" placeholder="搜索用户名..." style="width:200px;">
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                        <thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>信誉分</th><th>在借</th><th>注册时间</th><th>操作</th></tr></thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+                <nav id="userPagination" class="d-flex justify-content-center mt-3"></nav>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="bookModal" tabindex="-1">
+        <div class="modal-dialog modal-lg"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="bookModalTitle">添加图书</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <form id="bookForm">
+                    <input type="hidden" id="bookEditId">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">书名 *</label><input type="text" class="form-control" id="bookTitle" required></div>
+                        <div class="col-md-6"><label class="form-label">作者 *</label><input type="text" class="form-control" id="bookAuthor" required></div>
+                        <div class="col-md-4"><label class="form-label">ISBN</label><div class="input-group"><input type="text" class="form-control" id="bookIsbn"><button class="btn btn-outline-info" type="button" id="isbnLookupBtn" title="通过ISBN自动获取书籍信息"><i class="bi bi-search"></i> 填充</button></div></div>
+                        <div class="col-md-4"><label class="form-label">分类</label><input type="text" class="form-control" id="bookCategory"></div>
+                        <div class="col-md-4"><label class="form-label">出版社</label><input type="text" class="form-control" id="bookPublisher"></div>
+                        <div class="col-md-4"><label class="form-label">总册数</label><input type="number" class="form-control" id="bookTotalCopies" value="1" min="1"></div>
+                        <div class="col-md-4"><label class="form-label">位置</label><input type="text" class="form-control" id="bookLocation"></div>
+                        <div class="col-md-4"><label class="form-label">封面URL</label><input type="text" class="form-control" id="bookCoverUrl"></div>
+                        <div class="col-12"><label class="form-label">简介</label><textarea class="form-control" id="bookDesc" rows="3"></textarea></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveBookBtn">保存</button>
+            </div>
+        </div></div>
+    </div>
+
+    <div class="modal fade" id="creditModal" tabindex="-1">
+        <div class="modal-dialog"><div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">调整信誉分</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <p class="text-muted" id="creditModalUser"></p>
+                <div class="mb-3"><label class="form-label">变动值（正数为加分，负数为扣分）</label><input type="number" class="form-control" id="creditAmount" required></div>
+                <div class="mb-3"><label class="form-label">原因 *</label><input type="text" class="form-control" id="creditReason" required></div>
+                <div class="mb-3"><label class="form-label">备注</label><input type="text" class="form-control" id="creditDetail"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveCreditBtn">确认调整</button>
+            </div>
+        </div></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+(function () {
+    const user = checkAdminAuth();
+    if (!user) return;
+
+    document.getElementById('sidebarUsername').textContent = user.username;
+    document.getElementById('topbarUser').textContent = '欢迎，' + user.username;
+    document.getElementById('roleTag').innerHTML = getRoleName(user.role);
+
+    if (user.role === 3) {
+        document.querySelectorAll('.super-only').forEach(el => el.style.display = '');
+    }
+
+    let currentPanel = 'dashboard';
+    let bookEditId = null;
+    let creditUserId = null;
+
+    const panels = ['dashboard', 'books', 'returns', 'donations', 'images', 'comments', 'users'];
+    const panelTitles = { dashboard: '仪表盘', books: '书籍管理', returns: '还书审核', donations: '捐书审核', images: '图片审核', comments: '评论管理', users: '用户管理' };
+
+    function switchPanel(name) {
+        currentPanel = name;
+        panels.forEach(p => document.getElementById('panel-' + p).classList.add('d-none'));
+        document.getElementById('panel-' + name).classList.remove('d-none');
+        document.getElementById('topbarTitle').textContent = panelTitles[name];
+        document.querySelectorAll('.sidebar-nav .nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelector('.sidebar-nav .nav-link[data-panel="' + name + '"]').classList.add('active');
+        loadPanel(name);
+    }
+
+    document.querySelectorAll('.sidebar-nav .nav-link, .nav-switch').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
+            const panel = this.dataset.panel;
+            if (panel && panels.includes(panel)) switchPanel(panel);
+        });
+    });
+
+    async function loadPanel(name) {
+        document.getElementById('panel-loading').classList.add('d-none');
+        if (name === 'dashboard') await loadDashboard();
+        else if (name === 'books') await loadBooks();
+        else if (name === 'returns') await loadReturns();
+        else if (name === 'donations') await loadDonations();
+        else if (name === 'images') await loadImages();
+        else if (name === 'comments') await loadComments();
+        else if (name === 'users') await loadUsers();
+    }
+
+    async function loadDashboard() {
+        const r = await adminGet('/admin/stats');
+        if (!r) return;
+        const stats = r.data;
+        const cards = [
+            { icon: 'bi-book', color: '#FF6699', value: stats.total_books, label: '图书总量' },
+            { icon: 'bi-people', color: '#4fc3f7', value: stats.total_users, label: '用户总数' },
+            { icon: 'bi-bookmark-check', color: '#81c784', value: stats.total_borrowing, label: '在借图书' },
+            { icon: 'bi-arrow-return-left', color: '#ffb74d', value: stats.pending_returns, label: '待审核还书' },
+            { icon: 'bi-gift', color: '#ba68c8', value: stats.pending_donations, label: '待审核捐书' },
+            { icon: 'bi-image', color: '#4dd0e1', value: stats.pending_images, label: '待审核图片' },
+            { icon: 'bi-chat-dots', color: '#ef5350', value: stats.reported_comments, label: '被举报评论' },
+            { icon: 'bi-exclamation-triangle', color: '#ff8a65', value: stats.overdue_count, label: '超期未还' }
+        ];
+        document.getElementById('statCards').innerHTML = cards.map(c =>
+            '<div class="col-6 col-md-3"><div class="stat-card"><div class="d-flex justify-content-between align-items-start"><div><div class="stat-value">' + c.value + '</div><div class="stat-label">' + c.label + '</div></div><i class="bi ' + c.icon + ' stat-icon" style="color:' + c.color + '"></i></div></div></div>'
+        ).join('');
+        document.getElementById('sysInfo').innerHTML =
+            '<div>当前角色：' + getRoleName(user.role) + '</div>' +
+            '<div>数据库引擎：MySQL</div>' +
+            '<div>缓存状态：' + (stats.redis_enabled ? '已启用' : '内存模式') + '</div>';
+
+        if (user.role === 3) {
+            document.getElementById('sysConfigRow').style.display = '';
+            fetch(API_BASE + '/system/config')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.code === 200) {
+                        document.getElementById('sysSiteNameInput').value = data.data.site_name || '';
+                    }
+                }).catch(() => {});
+        }
+    }
+
+    async function loadBooks(page = 1) {
+        const q = document.getElementById('bookSearch').value;
+        const r = await adminGet('/admin/books?page=' + page + '&q=' + encodeURIComponent(q));
+        if (!r) return;
+        document.getElementById('bookTableBody').innerHTML = r.data.items.map(b =>
+            '<tr><td>' + b.id + '</td><td><strong>' + escapeHtml(b.title) + '</strong></td><td>' + escapeHtml(b.author) + '</td><td><small>' + (b.isbn || '-') + '</small></td><td>' + (b.category || '-') + '</td><td>' + b.available_copies + '/' + b.total_copies + '</td><td>' + (b.status === '可借' ? '<span class="badge bg-success">可借</span>' : '<span class="badge bg-secondary">' + b.status + '</span>') + '</td><td><button class="btn btn-outline-primary btn-sm edit-book" data-id="' + b.id + '"><i class="bi bi-pencil"></i></button> <button class="btn btn-outline-danger btn-sm del-book" data-id="' + b.id + '" data-title="' + escapeHtml(b.title) + '"><i class="bi bi-trash"></i></button></td></tr>'
+        ).join('') || '<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>';
+        renderPagination('bookPagination', r.data.total, r.data.page, r.data.per_page, loadBooks);
+
+        document.querySelectorAll('.edit-book').forEach(btn => btn.addEventListener('click', () => editBook(btn.dataset.id)));
+        document.querySelectorAll('.del-book').forEach(btn => btn.addEventListener('click', () => deleteBook(btn.dataset.id, btn.dataset.title)));
+    }
+
+    function renderPagination(wrapperId, total, page, perPage, loadFn) {
+        const pages = Math.ceil(total / perPage);
+        if (pages <= 1) { document.getElementById(wrapperId).innerHTML = ''; return; }
+        let html = '<ul class="pagination pagination-sm">';
+        for (let i = 1; i <= pages; i++) {
+            html += '<li class="page-item' + (i === page ? ' active' : '') + '"><a class="page-link" href="#" data-page="' + i + '">' + i + '</a></li>';
+        }
+        html += '</ul>';
+        document.getElementById(wrapperId).innerHTML = html;
+        document.getElementById(wrapperId).querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function (e) { e.preventDefault(); loadFn(parseInt(this.dataset.page)); });
+        });
+    }
+
+    document.getElementById('addBookBtn').addEventListener('click', () => {
+        bookEditId = null;
+        document.getElementById('bookModalTitle').textContent = '新书录入';
+        document.getElementById('bookForm').reset();
+        new bootstrap.Modal(document.getElementById('bookModal')).show();
+    });
+
+    document.getElementById('isbnLookupBtn').addEventListener('click', async function () {
+        const isbn = document.getElementById('bookIsbn').value.trim();
+        if (!isbn) { showToast('请先输入ISBN', 'error'); return; }
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>查询中';
+        const r = await adminGet('/books/isbn-lookup?isbn=' + encodeURIComponent(isbn));
+        this.disabled = false;
+        this.innerHTML = '<i class="bi bi-search"></i> 填充';
+        if (!r || r.code !== 200) { showToast(r.message || '查询失败', 'error'); return; }
+        const d = r.data;
+        if (d.title && !document.getElementById('bookTitle').value) document.getElementById('bookTitle').value = d.title;
+        if (d.author && !document.getElementById('bookAuthor').value) document.getElementById('bookAuthor').value = d.author;
+        if (d.publisher && !document.getElementById('bookPublisher').value) document.getElementById('bookPublisher').value = d.publisher;
+        if (d.cover_url && !document.getElementById('bookCoverUrl').value) document.getElementById('bookCoverUrl').value = d.cover_url;
+        showToast('已自动填充：' + d.title + ' / ' + d.author, 'success');
+    });
+
+    function editBook(id) {
+        bookEditId = id;
+        document.getElementById('bookModalTitle').textContent = '编辑图书';
+        adminGet('/books/' + id).then(r => {
+            if (!r || !r.data) return;
+            const d = r.data;
+            document.getElementById('bookTitle').value = d.title || '';
+            document.getElementById('bookAuthor').value = d.author || '';
+            document.getElementById('bookIsbn').value = d.isbn || '';
+            document.getElementById('bookCategory').value = d.category || '';
+            document.getElementById('bookPublisher').value = d.publisher || '';
+            document.getElementById('bookTotalCopies').value = d.total_copies || 1;
+            document.getElementById('bookLocation').value = d.location || '';
+            document.getElementById('bookCoverUrl').value = d.cover_image_url || '';
+            document.getElementById('bookDesc').value = d.description || '';
+            new bootstrap.Modal(document.getElementById('bookModal')).show();
+        });
+    }
+
+    document.getElementById('saveBookBtn').addEventListener('click', async function () {
+        const data = {
+            title: document.getElementById('bookTitle').value.trim(),
+            author: document.getElementById('bookAuthor').value.trim(),
+            isbn: document.getElementById('bookIsbn').value.trim(),
+            category: document.getElementById('bookCategory').value.trim(),
+            publisher: document.getElementById('bookPublisher').value.trim(),
+            total_copies: parseInt(document.getElementById('bookTotalCopies').value) || 1,
+            location: document.getElementById('bookLocation').value.trim(),
+            cover_image_url: document.getElementById('bookCoverUrl').value.trim(),
+            description: document.getElementById('bookDesc').value.trim()
+        };
+        if (!data.title || !data.author) { showToast('书名和作者为必填项', 'error'); return; }
+        let r;
+        if (bookEditId) {
+            r = await adminPut('/admin/books/' + bookEditId, data);
+        } else {
+            r = await adminPost('/admin/books', data);
+        }
+        if (!r) return;
+        if (r.code === 200) {
+            showToast(r.message, 'success');
+            bootstrap.Modal.getInstance(document.getElementById('bookModal')).hide();
+            loadBooks();
+        } else {
+            showToast(r.message, 'error');
+        }
+    });
+
+    async function deleteBook(id, title) {
+        if (!confirm('确定删除《' + title + '》？此操作不可撤销。')) return;
+        const r = await adminDelete('/admin/books/' + id);
+        if (!r) return;
+        if (r.code === 200) { showToast('已删除', 'success'); loadBooks(); }
+        else { showToast(r.message, 'error'); }
+    }
+
+    document.getElementById('bookSearch').addEventListener('input', function () {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => loadBooks(), 300);
+    });
+
+    async function loadReturns(page = 1) {
+        const status = document.getElementById('returnFilter').value;
+        const r = await adminGet('/admin/returns?page=' + page + (status ? '&status=' + encodeURIComponent(status) : ''));
+        if (!r) return;
+        document.getElementById('returnTableBody').innerHTML = r.data.items.map(item => {
+            const photos = (item.image_urls || []).map(u => '<img src="' + u + '" class="image-thumb me-1" onclick="window.open(\'' + u + '\')">').join('') || '<span class="text-muted">无</span>';
+            const statusBadge = item.status === '已提交归还' ? '<span class="badge bg-warning text-dark">待审核</span>' : '<span class="badge bg-success">已归还</span>';
+            const actions = item.status === '已提交归还'
+                ? '<button class="btn btn-success btn-sm me-1 confirm-return" data-id="' + item.record_id + '" data-action="approve">通过</button><button class="btn btn-danger btn-sm reject-return" data-id="' + item.record_id + '">污损</button>'
+                : '<span class="text-muted">' + (item.damage_level || '完好') + '</span>';
+            return '<tr><td>' + item.record_id + '</td><td>' + escapeHtml(item.username) + '</td><td>' + escapeHtml(item.book_title) + '</td><td><small>' + item.borrow_date + '</small></td><td><small>' + (item.return_date || '-') + '</small></td><td>' + photos + '</td><td>' + statusBadge + '</td><td>' + actions + '</td></tr>';
+        }).join('') || '<tr><td colspan="8" class="text-center text-muted">暂无数据</td></tr>';
+        renderPagination('returnPagination', r.data.total, r.data.page, r.data.per_page, loadReturns);
+
+        document.querySelectorAll('.confirm-return').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                if (!confirm('确认该书完好归还？')) return;
+                const data = { record_id: parseInt(this.dataset.id), damage_level: '完好' };
+                const formData = new FormData();
+                formData.append('record_id', data.record_id);
+                formData.append('damage_level', data.damage_level);
+                const resp = await fetch('/api/return/confirm', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                if (result.code === 200) { showToast('还书确认完成', 'success'); loadReturns(); }
+                else { showToast(result.message, 'error'); }
+            });
+        });
+        document.querySelectorAll('.reject-return').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const level = prompt('选择污损程度：\n1 = 轻微污损（扣1分）\n2 = 严重破损（扣2分）', '1');
+                if (!level) return;
+                const damage = level === '2' ? '严重破损' : '轻微污损';
+                const data = { record_id: parseInt(this.dataset.id), damage_level: damage };
+                const resp = await fetch('/api/return/confirm', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await resp.json();
+                if (result.code === 200) { showToast('污损处理完成', 'success'); loadReturns(); }
+                else { showToast(result.message, 'error'); }
+            });
+        });
+    }
+
+    document.getElementById('returnFilter').addEventListener('change', () => loadReturns());
+
+    async function loadDonations(page = 1) {
+        const status = document.getElementById('donationFilter').value;
+        const r = await adminGet('/admin/donations?page=' + page + (status ? '&status=' + encodeURIComponent(status) : ''));
+        if (!r) return;
+        document.getElementById('donationTableBody').innerHTML = r.data.items.map(d => {
+            const photos = (d.image_urls || []).map(u => '<img src="' + u + '" class="image-thumb me-1" onclick="window.open(\'' + u + '\')">').join('') || '<span class="text-muted">无</span>';
+            const sBadge = d.status === '待审核' ? '<span class="badge bg-warning text-dark">待审核</span>' : d.status === '已审核' ? '<span class="badge bg-success">已通过</span>' : '<span class="badge bg-danger">已拒绝</span>';
+            const actions = d.status === '待审核'
+                ? '<button class="btn btn-success btn-sm me-1 approve-donation" data-id="' + d.id + '">通过</button><button class="btn btn-danger btn-sm reject-donation" data-id="' + d.id + '">拒绝</button>'
+                : '<span class="text-muted small">' + escapeHtml(d.admin_remark || '') + '</span>';
+            return '<tr><td>' + d.id + '</td><td>' + escapeHtml(d.username) + '</td><td>' + escapeHtml(d.book_title) + '</td><td><small>' + escapeHtml(d.damage_desc || '-') + '</small></td><td>' + photos + '</td><td>' + sBadge + '</td><td>' + actions + '</td></tr>';
+        }).join('') || '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
+        renderPagination('donationPagination', r.data.total, r.data.page, r.data.per_page, loadDonations);
+
+        document.querySelectorAll('.approve-donation').forEach(btn => btn.addEventListener('click', () => reviewDonation(btn.dataset.id, 'approve')));
+        document.querySelectorAll('.reject-donation').forEach(btn => btn.addEventListener('click', () => reviewDonation(btn.dataset.id, 'reject')));
+    }
+
+    async function reviewDonation(id, action) {
+        const remark = action === 'reject' ? (prompt('请输入拒绝原因：') || '审核不通过') : '';
+        const r = await adminPost('/admin/donations/review', { donation_id: parseInt(id), action, remark });
+        if (!r) return;
+        if (r.code === 200) { showToast(r.message, 'success'); loadDonations(); }
+        else { showToast(r.message, 'error'); }
+    }
+
+    document.getElementById('donationFilter').addEventListener('change', () => loadDonations());
+
+    async function loadImages(page = 1) {
+        const status = document.getElementById('imageFilter').value;
+        const r = await adminGet('/admin/images?page=' + page + (status ? '&status=' + encodeURIComponent(status) : ''));
+        if (!r) return;
+        document.getElementById('imageGrid').innerHTML = r.data.items.map(ir => {
+            const sBadge = ir.status === '待审核' ? 'bg-warning text-dark' : ir.status === '已通过' ? 'bg-success' : 'bg-danger';
+            const actions = ir.status === '待审核'
+                ? '<div class="mt-2"><button class="btn btn-success btn-sm me-1 approve-img" data-id="' + ir.id + '">通过</button><button class="btn btn-danger btn-sm reject-img" data-id="' + ir.id + '">拒绝</button></div>'
+                : '';
+            return '<div class="col-6 col-md-3"><div class="card"><img src="' + ir.image_url + '" style="height:160px;object-fit:cover;" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22160%22><rect fill=%22%23333%22 width=%22200%22 height=%22160%22/><text fill=%22%23888%22 x=%22100%22 y=%2285%22 text-anchor=%22middle%22>无图片</text></svg>\'"><div class="card-body p-2"><small class="text-muted">' + escapeHtml(ir.username) + ' · ' + ir.image_type + '</small><br><span class="badge ' + sBadge + ' small">' + ir.status + '</span>' + actions + '</div></div></div>';
+        }).join('') || '<div class="col-12 text-center text-muted">暂无数据</div>';
+        renderPagination('imagePagination', r.data.total, r.data.page, r.data.per_page, loadImages);
+
+        document.querySelectorAll('.approve-img').forEach(btn => btn.addEventListener('click', () => reviewImage(btn.dataset.id, 'approve')));
+        document.querySelectorAll('.reject-img').forEach(btn => btn.addEventListener('click', () => reviewImage(btn.dataset.id, 'reject')));
+    }
+
+    async function reviewImage(id, action) {
+        const r = await adminPost('/admin/images/review', { image_id: parseInt(id), action });
+        if (!r) return;
+        if (r.code === 200) { showToast(r.message, 'success'); loadImages(); }
+        else { showToast(r.message, 'error'); }
+    }
+
+    document.getElementById('imageFilter').addEventListener('change', () => loadImages());
+
+    async function loadComments(page = 1) {
+        const reported = document.getElementById('reportedOnly').checked ? '1' : '0';
+        const r = await adminGet('/admin/comments?page=' + page + '&reported=' + reported);
+        if (!r) return;
+        document.getElementById('commentTableBody').innerHTML = r.data.items.map(c =>
+            '<tr><td>' + c.id + '</td><td>' + escapeHtml(c.username) + '</td><td>' + escapeHtml(c.book_title) + '</td><td style="max-width:300px;">' + escapeHtml(c.content) + '</td><td>' + c.like_count + '</td><td>' + (c.is_reported ? '<span class="badge bg-danger">被举报</span>' : '<span class="badge bg-secondary">正常</span>') + '</td><td><button class="btn btn-outline-danger btn-sm del-comment" data-id="' + c.id + '"><i class="bi bi-trash"></i> 删除</button></td></tr>'
+        ).join('') || '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
+        renderPagination('commentPagination', r.data.total, r.data.page, r.data.per_page, loadComments);
+
+        document.querySelectorAll('.del-comment').forEach(btn => btn.addEventListener('click', async function () {
+            if (!confirm('确定删除该评论？')) return;
+            const r = await adminDelete('/admin/comments/' + this.dataset.id);
+            if (!r) return;
+            if (r.code === 200) { showToast('已删除', 'success'); loadComments(); }
+            else { showToast(r.message, 'error'); }
+        }));
+    }
+
+    document.getElementById('reportedOnly').addEventListener('change', () => loadComments());
+
+    async function loadUsers(page = 1) {
+        if (user.role !== 3) return;
+        const q = document.getElementById('userSearch').value;
+        const r = await adminGet('/admin/users?page=' + page + '&q=' + encodeURIComponent(q));
+        if (!r) return;
+        document.getElementById('userTableBody').innerHTML = r.data.items.map(u =>
+            '<tr><td>' + u.id + '</td><td><strong>' + escapeHtml(u.username) + '</strong></td><td>' + getRoleName(u.role) + '</td><td>' + u.credit_score + '</td><td>' + u.borrowing_count + '</td><td><small>' + u.created_at + '</small></td><td><button class="btn btn-outline-primary btn-sm adjust-credit" data-id="' + u.id + '" data-username="' + escapeHtml(u.username) + '" data-score="' + u.credit_score + '"><i class="bi bi-coin"></i> 信誉分</button></td></tr>'
+        ).join('') || '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
+        renderPagination('userPagination', r.data.total, r.data.page, r.data.per_page, loadUsers);
+
+        document.querySelectorAll('.adjust-credit').forEach(btn => {
+            btn.addEventListener('click', function () {
+                creditUserId = parseInt(this.dataset.id);
+                document.getElementById('creditModalUser').textContent = '用户：' + this.dataset.username + '（当前：' + this.dataset.score + '分）';
+                document.getElementById('creditAmount').value = '';
+                document.getElementById('creditReason').value = '';
+                document.getElementById('creditDetail').value = '';
+                new bootstrap.Modal(document.getElementById('creditModal')).show();
+            });
+        });
+    }
+
+    document.getElementById('userSearch').addEventListener('input', function () {
+        clearTimeout(this._timer);
+        this._timer = setTimeout(() => loadUsers(), 300);
+    });
+
+    document.getElementById('saveCreditBtn').addEventListener('click', async function () {
+        const amount = parseInt(document.getElementById('creditAmount').value);
+        const reason = document.getElementById('creditReason').value.trim();
+        const detail = document.getElementById('creditDetail').value.trim();
+        if (isNaN(amount) || amount === 0) { showToast('请输入有效的变动值', 'error'); return; }
+        if (!reason) { showToast('请填写变动原因', 'error'); return; }
+        const r = await adminPost('/admin/users/credit', { user_id: creditUserId, amount, reason, detail });
+        if (!r) return;
+        if (r.code === 200) { showToast('信誉分已调整：' + (amount > 0 ? '+' + amount : amount) + ' → ' + r.data.new_score, 'success'); bootstrap.Modal.getInstance(document.getElementById('creditModal')).hide(); loadUsers(); }
+        else { showToast(r.message, 'error'); }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async function () {
+        await fetch(API_BASE + '/auth/logout', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() } });
+        clearAuth();
+        window.location.href = 'login.html';
+    });
+
+    document.getElementById('saveSiteNameBtn').addEventListener('click', async function () {
+        const name = document.getElementById('sysSiteNameInput').value.trim();
+        if (!name) { showToast('站点名称不能为空', 'error'); return; }
+        const r = await adminPut('/system/config', { site_name: name });
+        if (!r) return;
+        if (r.code === 200) {
+            showToast('站点名称已更新为：' + name, 'success');
+            document.querySelectorAll('.site-name').forEach(el => el.textContent = name);
+            document.title = document.title.replace(/校园图书馆/g, name);
+        } else {
+            showToast(r.message, 'error');
+        }
+    });
+
+    switchPanel('dashboard');
+})();
+    </script>
+</body>
+</html>

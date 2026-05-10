@@ -99,3 +99,15 @@ def admin_required(f):
             return error(403, '需要管理员权限')
         return f(current_user=user, *args, **kwargs)
     return decorated
+
+
+def super_admin_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user, err = _verify_token()
+        if err:
+            return error(401, err)
+        if user.role != 3:
+            return error(403, '需要超级管理员权限')
+        return f(current_user=user, *args, **kwargs)
+    return decorated

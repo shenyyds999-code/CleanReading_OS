@@ -33,6 +33,18 @@ def search_books():
     return paginated(**result)
 
 
+@books_bp.route('/isbn-lookup', methods=['GET'])
+@login_required
+def isbn_lookup(current_user):
+    isbn = request.args.get('isbn', '').strip()
+    if not isbn:
+        return error(400, '请提供ISBN参数')
+    result, err, code = book_service.isbn_lookup(isbn)
+    if err:
+        return error(code or 400, err)
+    return success(result)
+
+
 @books_bp.route('/<int:book_id>', methods=['GET'])
 @kiosk_blocked
 def get_book(book_id):

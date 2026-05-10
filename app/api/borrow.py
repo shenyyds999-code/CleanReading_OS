@@ -10,6 +10,16 @@ from app.utils.cache import cache_delete, CacheKey
 borrow_bp = Blueprint('borrow', __name__)
 
 
+@borrow_bp.route('/status', methods=['GET'])
+@login_required
+def borrow_status(current_user):
+    book_id = request.args.get('book_id', type=int)
+    if not book_id:
+        return error(400, '缺少book_id参数')
+    borrowed = borrow_service.is_book_borrowed_by_user(current_user.id, book_id)
+    return success({'book_id': book_id, 'borrowed': borrowed})
+
+
 @borrow_bp.route('/request', methods=['POST'])
 @login_required
 @kiosk_blocked

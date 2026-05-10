@@ -242,3 +242,16 @@ class Notification(db.Model):
 
     def __repr__(self):
         return f'<Notification user={self.user_id} type={self.type} read={self.is_read}>'
+
+
+class SystemConfig(db.Model):
+    __tablename__ = 'system_config'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    config_key = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    config_value = db.Column(db.Text, default='')
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
+                           onupdate=lambda: datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f'<SystemConfig {self.config_key}={self.config_value}>'
