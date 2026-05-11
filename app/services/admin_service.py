@@ -353,6 +353,21 @@ def delete_comment(comment_id):
     comment = Comment.query.get(comment_id)
     if not comment:
         return None, '评论不存在', 404
+
+    book = Book.query.get(comment.book_id)
+    was_reported = comment.is_reported
+    user_id = comment.user_id
+
+    if was_reported:
+        notification = Notification(
+            user_id=user_id,
+            type='评论通知',
+            title='评论已被移除',
+            content=f'你在《{book.title if book else "未知图书"}》下的评论因被举报已被管理员移除。',
+            related_id=comment_id
+        )
+        db.session.add(notification)
+
     db.session.delete(comment)
     db.session.commit()
     return {'deleted': comment_id}, None, None

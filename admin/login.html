@@ -10,14 +10,14 @@
         body { background: #1a1d21 url('img/bg-admin.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .login-card { background: #24272a; border: 1px solid #3a3f44; border-radius: 12px; width: 100%; max-width: 420px; }
         .form-control { background: #1a1d21; border-color: #3a3f44; color: #e0e0e0; }
-        .form-control:focus { background: #1a1d21; border-color: #FF6699; color: #e0e0e0; box-shadow: 0 0 0 0.2rem rgba(255,102,153,0.25); }
+        .form-control:focus { background: #1a1d21; border-color: var(--accent); color: #e0e0e0; box-shadow: 0 0 0 0.2rem var(--accent-alpha25); }
         .form-control::placeholder { color: #888; }
         .form-control:-webkit-autofill,
         .form-control:-webkit-autofill:hover,
         .form-control:-webkit-autofill:focus { -webkit-text-fill-color: #e0e0e0; -webkit-box-shadow: 0 0 0 1000px #1a1d21 inset; transition: background-color 5000s ease-in-out 0s; }
         .form-label { color: #bbb; }
-        .btn-primary { background: #FF6699; border-color: #FF6699; }
-        .btn-primary:hover { background: #e05580; border-color: #e05580; }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
         .text-muted { color: #999 !important; }
     </style>
 </head>
@@ -26,7 +26,7 @@
 
     <div class="login-card shadow-lg p-4 p-md-5">
         <div class="text-center mb-4">
-            <i class="bi bi-shield-lock" style="font-size: 3rem; color: #FF6699;"></i>
+            <i class="bi bi-shield-lock" style="font-size: 3rem; color: var(--accent);"></i>
             <h3 class="mt-2" style="color:#e0e0e0;">管理后台</h3>
             <p class="text-muted"><span class="site-name">校园图书馆</span>借阅系统</p>
         </div>
@@ -56,7 +56,7 @@
 
         (function () {
             var s = document.createElement('style');
-            s.textContent = '.site-name { color: #FF6699 !important; }';
+            s.textContent = '.site-name { color: var(--accent) !important; visibility: hidden; }';
             document.head.appendChild(s);
         })();
 
@@ -68,9 +68,18 @@
                         var name = data.data.site_name;
                         document.title = document.title.replace(/校园图书馆/g, name);
                         var els = document.querySelectorAll('.site-name');
-                        for (var i = 0; i < els.length; i++) { els[i].textContent = name; }
+                        for (var i = 0; i < els.length; i++) {
+                            els[i].textContent = name;
+                            els[i].style.visibility = 'visible';
+                        }
+                    } else {
+                        var els = document.querySelectorAll('.site-name');
+                        for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
                     }
-                }).catch(function () { });
+                }).catch(function () {
+                    var els = document.querySelectorAll('.site-name');
+                    for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
+                });
         })();
 
         function getSavedUser() { try { return JSON.parse(localStorage.getItem('library_user') || 'null'); } catch { return null; } }

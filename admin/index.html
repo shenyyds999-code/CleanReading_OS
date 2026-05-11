@@ -16,7 +16,7 @@
         .sidebar-nav { padding: 0.75rem 0; }
         .sidebar-nav .nav-link { color: #aaa; padding: 0.6rem 1.25rem; border-left: 3px solid transparent; font-size: 0.9rem; transition: all .15s; }
         .sidebar-nav .nav-link:hover { color: #fff; background: rgba(255,255,255,0.04); }
-        .sidebar-nav .nav-link.active { color: var(--accent); background: rgba(255,102,153,0.1); border-left-color: var(--accent); }
+        .sidebar-nav .nav-link.active { color: var(--accent); background: var(--accent-alpha10); border-left-color: var(--accent); }
         .sidebar-nav .nav-link i { width: 20px; text-align: center; margin-right: 8px; }
         .sidebar-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--border); position: absolute; bottom: 0; width: 100%; }
         .main { margin-left: var(--sidebar-w); min-height: 100vh; }
@@ -34,10 +34,10 @@
         .table > thead > tr > th { color: #aaa; font-weight: 600; border-bottom: 2px solid var(--border); }
         .table > tbody > tr:hover { background: rgba(255,255,255,0.03); }
         .form-control, .form-select { background: #1a1d21; border-color: var(--border); color: var(--text); }
-        .form-control:focus, .form-select:focus { background: #1a1d21; border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 0.2rem rgba(255,102,153,0.15); }
+        .form-control:focus, .form-select:focus { background: #1a1d21; border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 0.2rem var(--accent-alpha15); }
         .form-label { color: #ccc; }
         .btn-primary { background: var(--accent); border-color: var(--accent); }
-        .btn-primary:hover { background: #e05580; border-color: #e05580; }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
         .btn-outline-primary { color: var(--accent); border-color: var(--accent); }
         .btn-outline-primary:hover { background: var(--accent); color: #fff; }
         .badge { font-weight: 500; }
@@ -324,7 +324,7 @@
         if (!r) return;
         const stats = r.data;
         const cards = [
-            { icon: 'bi-book', color: '#FF6699', value: stats.total_books, label: '图书总量' },
+            { icon: 'bi-book', color: 'var(--accent)', value: stats.total_books, label: '图书总量' },
             { icon: 'bi-people', color: '#4fc3f7', value: stats.total_users, label: '用户总数' },
             { icon: 'bi-bookmark-check', color: '#81c784', value: stats.total_borrowing, label: '在借图书' },
             { icon: 'bi-arrow-return-left', color: '#ffb74d', value: stats.pending_returns, label: '待审核还书' },

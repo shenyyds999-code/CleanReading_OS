@@ -2,7 +2,7 @@ import os
 import uuid
 from flask import Blueprint, request, current_app
 from app import db
-from app.models import Book, BorrowRecord, ImageReview
+from app.models import Book, BorrowRecord, ImageReview, Notification
 from app.services import return_service
 from app.utils.response import success, error, paginated
 from app.utils.jwt_helper import login_required, admin_required
@@ -114,6 +114,23 @@ def confirm_return(current_user):
         log = CreditLog(user_id=user.id, change_amount=-2, reason='还书污损', detail=f'严重破损，扣除2分')
         db.session.add(log)
         cache_delete(CacheKey.USER(user.id))
+
+    notify_title = '还书已确认'
+    if damage_level == '完好':
+        notify_content = f'你归还的《{book.title if book else "未知图书"}》已确认归还，图书状态完好。'
+    elif damage_level == '轻微污损':
+        notify_content = f'你归还的《{book.title if book else "未知图书"}》已确认归还。检测到轻微污损，信誉分-1。'
+    else:
+        notify_content = f'你归还的《{book.title if book else "未知图书"}》已确认归还。检测到严重破损，信誉分-2。'
+
+    notification = Notification(
+        user_id=record.user_id,
+        type='还书通知',
+        title=notify_title,
+        content=notify_content,
+        related_id=record.id
+    )
+    db.session.add(notification)
 
     db.session.commit()
     cache_delete(CacheKey.BOOK(book.id) if book else None)

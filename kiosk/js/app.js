@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:5000/api';
+const API_BASE = '/api';
 const TOKEN_KEY = 'kiosk_token';
 const USER_KEY = 'kiosk_user';
 const CLIENT_TYPE = 'kiosk';
@@ -102,3 +102,22 @@ function checkAuthAndRedirect() {
     }
     return getSavedUser();
 }
+
+(function () {
+    try {
+        var cached = localStorage.getItem('accent_color');
+        if (cached && /^#[0-9a-fA-F]{6}$/.test(cached)) {
+            var r = parseInt(cached.slice(1, 3), 16);
+            var g = parseInt(cached.slice(3, 5), 16);
+            var b = parseInt(cached.slice(5, 7), 16);
+            var hr = Math.max(0, r - 35);
+            var hg = Math.max(0, g - 17);
+            var hb = Math.max(0, b - 25);
+            var hover = '#' + [hr, hg, hb].map(function (v) { return v.toString(16).padStart(2, '0'); }).join('');
+            var style = document.createElement('style');
+            style.id = 'accent-style';
+            style.textContent = ':root { --accent: ' + cached + '; --accent-hover: ' + hover + '; }';
+            document.head.appendChild(style);
+        }
+    } catch (e) {}
+})();

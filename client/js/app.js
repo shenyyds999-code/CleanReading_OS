@@ -1,4 +1,4 @@
-const API_BASE = 'http://127.0.0.1:5000/api';
+const API_BASE = '/api';
 const TOKEN_KEY = 'library_token';
 const USER_KEY = 'library_user';
 
@@ -65,17 +65,80 @@ function loadSiteName() {
                 var name = data.data.site_name;
                 document.title = document.title.replace(/校园图书馆/g, name);
                 var els = document.querySelectorAll('.site-name');
-                for (var i = 0; i < els.length; i++) { els[i].textContent = name; }
+                for (var i = 0; i < els.length; i++) {
+                    els[i].textContent = name;
+                    els[i].style.visibility = 'visible';
+                }
+            } else {
+                var els = document.querySelectorAll('.site-name');
+                for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
             }
-        }).catch(function() {});
+        }).catch(function() {
+            var els = document.querySelectorAll('.site-name');
+            for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
+        });
 }
 
 (function () {
     var style = document.createElement('style');
-    style.textContent = '.site-name { color: #FF6699 !important; }';
+    style.textContent = '.site-name { color: var(--accent) !important; visibility: hidden; }';
     document.head.appendChild(style);
 })();
 
+function applyAccentColor(hex) {
+    hex = (hex || '#FF6699').trim();
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) hex = '#FF6699';
+
+    var r = parseInt(hex.slice(1, 3), 16);
+    var g = parseInt(hex.slice(3, 5), 16);
+    var b = parseInt(hex.slice(5, 7), 16);
+
+    var hr = Math.max(0, r - 35);
+    var hg = Math.max(0, g - 17);
+    var hb = Math.max(0, b - 25);
+    var hover = '#' + [hr, hg, hb].map(function (v) { return v.toString(16).padStart(2, '0'); }).join('');
+
+    var accentVars = [
+        ':root {',
+        '--accent: ' + hex + ';',
+        '--accent-hover: ' + hover + ';',
+        '--accent-alpha25: rgba(' + r + ',' + g + ',' + b + ',0.25);',
+        '--accent-alpha15: rgba(' + r + ',' + g + ',' + b + ',0.15);',
+        '--accent-alpha10: rgba(' + r + ',' + g + ',' + b + ',0.1);',
+        '}'
+    ].join('');
+
+    var existing = document.getElementById('accent-style');
+    if (existing) existing.remove();
+
+    var style = document.createElement('style');
+    style.id = 'accent-style';
+    style.textContent = accentVars;
+    document.head.appendChild(style);
+
+    try { localStorage.setItem('accent_color', hex); } catch (e) {}
+}
+
+function getAccentColor() {
+    try { return localStorage.getItem('accent_color') || '#FF6699'; } catch (e) { return '#FF6699'; }
+}
+
+function loadAccentColor() {
+    var cached = getAccentColor();
+    applyAccentColor(cached);
+
+    if (!isLoggedIn()) return;
+
+    fetch(API_BASE + '/user/settings', { headers: getDefaultHeaders() })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.code === 200 && data.data.theme_color) {
+                applyAccentColor(data.data.theme_color);
+            }
+        }).catch(function () {});
+}
+
+loadAccentColor();
 loadSiteName();
 
 async function apiPost(url, body) {

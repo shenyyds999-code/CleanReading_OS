@@ -87,7 +87,7 @@ def get_book(book_id):
     return _book_dict(book)
 
 
-def get_popular_books(limit=8):
+def get_popular_books(limit=8, user_id=None):
     from app.models import BorrowRecord
     from sqlalchemy import func
     popular = (
@@ -109,6 +109,11 @@ def get_popular_books(limit=8):
         book = Book.query.get(p.id)
         d = _book_dict(book)
         d['borrow_count'] = p.borrow_count
+        d['user_borrow_count'] = 0
+        if user_id:
+            d['user_borrow_count'] = BorrowRecord.query.filter_by(
+                user_id=user_id, book_id=p.id, status='借阅中'
+            ).count()
         result.append(d)
     result.sort(key=lambda x: x['borrow_count'], reverse=True)
     return result

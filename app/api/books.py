@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from app.services import book_service
 from app.utils.response import success, error, paginated
-from app.utils.jwt_helper import login_required
+from app.utils.jwt_helper import login_required, _verify_token
 from app.utils.kiosk import kiosk_blocked
 from app.utils.cache import cache_get, cache_set, cache_delete, CacheKey
 
@@ -11,7 +11,11 @@ books_bp = Blueprint('books', __name__)
 @books_bp.route('/popular', methods=['GET'])
 def popular_books():
     limit = request.args.get('limit', 8, type=int)
-    result = book_service.get_popular_books(limit)
+    user_id = None
+    user, _ = _verify_token()
+    if user:
+        user_id = user.id
+    result = book_service.get_popular_books(limit, user_id=user_id)
     return success({'items': result})
 
 

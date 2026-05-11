@@ -8,8 +8,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; }
-        .navbar-brand { font-weight: 700; color: #FF6699 !important; }
-        .navbar-brand i.bi-book { color: #FF6699; }
+        .navbar-brand { font-weight: 700; color: var(--accent) !important; }
+        .navbar-brand i.bi-book { color: var(--accent); }
         .navbar { background: #24272a !important; border-bottom: 1px solid #4a5056; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
@@ -21,7 +21,7 @@
         .chat-window { position: fixed; bottom: 20px; right: 20px; width: 360px; max-height: 480px; z-index: 1050; display: none; }
         .chat-body { height: 280px; overflow-y: auto; background: #24272a; }
         .chat-message { margin-bottom: 8px; max-width: 85%; }
-        .chat-message.user { margin-left: auto; background: #FF6699; color: #fff; border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
+        .chat-message.user { margin-left: auto; background: var(--accent); color: #fff; border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
         .chat-message.ai { margin-right: auto; background: #4a5056; color: #e0e0e0; border-radius: 16px 16px 16px 4px; padding: 10px 14px; }
         .chat-toggle { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; font-size: 24px; z-index: 1051; }
         .card { background: #363b3f; border-color: #4a5056; }
@@ -34,14 +34,14 @@
         .text-muted { color: #888 !important; }
         h2, h5 { color: #e0e0e0; }
         .form-control, textarea { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .form-control:focus, textarea:focus { background: #363b3f; border-color: #FF6699; color: #e0e0e0; box-shadow: 0 0 0 0.2rem rgba(255,102,153,0.25); }
-        .btn-primary { background: #FF6699; border-color: #FF6699; }
-        .btn-primary:hover { background: #e05580; border-color: #e05580; }
+        .form-control:focus, textarea:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; box-shadow: 0 0 0 0.2rem var(--accent-alpha25); }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
         .btn-outline-secondary { color: #bbb; border-color: #4a5056; }
         .btn-outline-secondary:hover { background: #3e4347; border-color: #5a6066; color: #e0e0e0; }
         .btn-outline-info { color: #7eb8ff; border-color: #7eb8ff; }
         .btn-outline-info:hover { background: #7eb8ff; color: #2E3134; }
-        .card-header.bg-info { background: #FF6699 !important; }
+        .card-header.bg-info { background: var(--accent) !important; }
         .modal-content { background: #363b3f; border-color: #4a5056; color: #e0e0e0; }
         .modal-header { border-color: #4a5056; }
         .modal-footer { border-color: #4a5056; }
@@ -83,12 +83,12 @@
                         <h2 id="bookTitle"></h2>
                         <div class="mb-3"><span id="bookStatus" class="badge fs-6"></span></div>
                         <table class="table table-borderless">
-                            <tr><td class="text-muted" style="width:80px;">作者</td><td id="bookAuthor"></td></tr>
-                            <tr><td class="text-muted">ISBN</td><td id="bookIsbn"></td></tr>
-                            <tr><td class="text-muted">分类</td><td id="bookCategory"></td></tr>
-                            <tr><td class="text-muted">出版社</td><td id="bookPublisher"></td></tr>
-                            <tr><td class="text-muted">位置</td><td id="bookLocation"></td></tr>
-                            <tr><td class="text-muted">馆藏</td><td id="bookCopies"></td></tr>
+                            <tr><td style="width:80px;color:rgb(33,37,41);">作者</td><td id="bookAuthor"></td></tr>
+                            <tr><td style="color:rgb(33,37,41);">ISBN</td><td id="bookIsbn"></td></tr>
+                            <tr><td style="color:rgb(33,37,41);">分类</td><td id="bookCategory"></td></tr>
+                            <tr><td style="color:rgb(33,37,41);">出版社</td><td id="bookPublisher"></td></tr>
+                            <tr><td style="color:rgb(33,37,41);">位置</td><td id="bookLocation"></td></tr>
+                            <tr><td style="color:rgb(33,37,41);">馆藏</td><td id="bookCopies"></td></tr>
                         </table>
                         <p id="bookDesc" style="color:#ccc;"></p>
                         <div class="mt-3">
@@ -261,8 +261,10 @@
                                 </div>
                                 <p class="mb-1 mt-1">${escHtml(c.content)}</p>
                                 <div class="d-flex gap-3">
-                                    <a href="#" class="text-decoration-none small like-btn" data-id="${c.id}"><i class="bi bi-hand-thumbs-up"></i> ${c.like_count}</a>
-                                    <a href="#" class="text-decoration-none small text-danger report-btn" data-id="${c.id}"><i class="bi bi-flag"></i> 举报</a>
+                                    <a href="#" class="text-decoration-none small like-btn${c.is_liked ? ' text-primary' : ''}" data-id="${c.id}"><i class="bi ${c.is_liked ? 'bi-hand-thumbs-up-fill' : 'bi-hand-thumbs-up'}"></i> <span class="like-count">${c.like_count}</span></a>
+                                    ${c.user_id === user.id
+                                        ? '<a href="#" class="text-decoration-none small text-danger delete-comment-btn" data-id="' + c.id + '"><i class="bi bi-trash"></i> 删除</a>'
+                                        : '<a href="#" class="text-decoration-none small text-danger report-btn" data-id="' + c.id + '"><i class="bi bi-flag"></i> 举报</a>'}
                                 </div>
                             </div>
                         </div>
@@ -272,7 +274,18 @@
                     e.preventDefault();
                     const id = this.dataset.id;
                     const r = await apiPost('/comments/' + id + '/like', {});
-                    if (r && r.code === 200) { this.innerHTML = '<i class="bi bi-hand-thumbs-up-fill"></i> ' + r.data.like_count; }
+                    if (r && r.code === 200) {
+                        const countSpan = this.querySelector('.like-count');
+                        const icon = this.querySelector('i');
+                        if (r.data.is_liked) {
+                            this.classList.add('text-primary');
+                            icon.className = 'bi bi-hand-thumbs-up-fill';
+                        } else {
+                            this.classList.remove('text-primary');
+                            icon.className = 'bi bi-hand-thumbs-up';
+                        }
+                        if (countSpan) countSpan.textContent = r.data.like_count;
+                    }
                 }));
 
                 container.querySelectorAll('.report-btn').forEach(b => b.addEventListener('click', async function (e) {
@@ -280,6 +293,22 @@
                     if (!confirm('确认举报该评论？')) return;
                     const r = await apiPost('/comments/' + this.dataset.id + '/report', {});
                     if (r && r.code === 200) { this.textContent = '已举报'; this.classList.add('text-muted'); }
+                }));
+
+                container.querySelectorAll('.delete-comment-btn').forEach(b => b.addEventListener('click', async function (e) {
+                    e.preventDefault();
+                    if (!confirm('确认删除该评论？')) return;
+                    const resp = await fetch(API_BASE + '/comments/' + this.dataset.id, {
+                        method: 'DELETE',
+                        headers: getDefaultHeaders()
+                    });
+                    const r = await resp.json();
+                    if (r && r.code === 200) {
+                        this.closest('.comment-item').remove();
+                        showToast('评论已删除', 'success');
+                    } else {
+                        showToast(r?.message || '删除失败', 'error');
+                    }
                 }));
             }
 

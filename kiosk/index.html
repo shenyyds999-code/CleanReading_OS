@@ -11,10 +11,10 @@
         body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         .kiosk-container { width: 100%; max-width: 600px; padding: 24px; }
         .kiosk-card { background: #363b3f; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); padding: 32px 24px; color: #e0e0e0; }
-        .kiosk-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 24px; color: #FF6699; }
+        .kiosk-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 24px; color: var(--accent); }
         .btn-kiosk { font-size: 18px; padding: 14px 24px; border-radius: 12px; width: 100%; min-height: 56px; }
         .input-kiosk { font-size: 18px; padding: 14px 16px; border-radius: 12px; height: 56px; text-align: center; background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .input-kiosk:focus { background: #363b3f; border-color: #FF6699; color: #e0e0e0; }
+        .input-kiosk:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; }
         .input-kiosk::placeholder { color: #888; }
         .input-kiosk:-webkit-autofill,
         .input-kiosk:-webkit-autofill:hover,
@@ -22,8 +22,8 @@
         .result-card { background: #24272a; border-radius: 12px; padding: 20px; margin-top: 16px; color: #e0e0e0; }
         .status-ok { color: #4ade80; font-weight: 600; }
         .status-no { color: #f87171; font-weight: 600; }
-        .btn-primary { background: #FF6699; border-color: #FF6699; }
-        .btn-primary:hover { background: #e05580; border-color: #e05580; }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
         .btn-success { background: #4ade80; border-color: #4ade80; color: #2E3134; }
         .btn-success:hover { background: #22c55e; border-color: #22c55e; color: #2E3134; }
         .btn-outline-secondary { color: #bbb; border-color: #444; }
@@ -43,7 +43,7 @@
 
         (function () {
             var s = document.createElement('style');
-            s.textContent = '.site-name { color: #FF6699 !important; }';
+            s.textContent = '.site-name { color: var(--accent) !important; }';
             document.head.appendChild(s);
         })();
 

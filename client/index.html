@@ -8,28 +8,28 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; }
-        .navbar-brand { font-weight: 700; color: #FF6699 !important; }
-        .navbar-brand i.bi-book { color: #FF6699; }
+        .navbar-brand { font-weight: 700; color: var(--accent) !important; }
+        .navbar-brand i.bi-book { color: var(--accent); }
         .navbar { background: #24272a !important; border-bottom: 1px solid #4a5056; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
         .search-bar { max-width: 600px; margin: 0 auto; }
         .search-bar input, .search-bar select { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .search-bar input:focus, .search-bar select:focus { background: #363b3f; border-color: #FF6699; color: #e0e0e0; }
+        .search-bar input:focus, .search-bar select:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; }
         .search-bar .input-group-text { background: #363b3f; border-color: #4a5056; color: #888; }
         .book-card { transition: transform .15s; cursor: pointer; background: #363b3f; border-color: #4a5056; }
-        .book-card:hover { transform: translateY(-2px); border-color: #FF6699; }
+        .book-card:hover { transform: translateY(-2px); border-color: var(--accent); }
         .book-card .card-body { color: #e0e0e0; }
         .book-card .card-text { color: #999; }
         .book-cover { height: 200px; object-fit: cover; background: #24272a; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: #555; }
         .status-badge { font-size: 0.75rem; }
         .blocked-card { max-width: 500px; }
         .text-muted { color: #888 !important; }
-        .btn-primary { background: #FF6699; border-color: #FF6699; }
-        .btn-primary:hover { background: #e05580; border-color: #e05580; }
-        .btn-outline-light { border-color: #FF6699; color: #FF6699; }
-        .btn-outline-light:hover { background: #FF6699; border-color: #FF6699; color: #fff; }
-        #welcomeArea i.bi { color: #FF6699 !important; }
+        .btn-primary { background: var(--accent); border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .btn-outline-light { border-color: var(--accent); color: var(--accent); }
+        .btn-outline-light:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+        #welcomeArea i.bi { color: var(--accent) !important; }
         #welcomeArea h2 { color: #e0e0e0; }
         #welcomeArea p { color: #888; }
         .badge.bg-success { background: #1a3a2a !important; color: #4ade80; }
@@ -106,7 +106,7 @@
             <div id="bookList" class="row g-4"></div>
 
             <div id="popularSection" class="mb-5">
-                <h5 class="mb-3" style="color:#FF6699;"><i class="bi bi-fire me-2"></i>热门推荐</h5>
+                <h5 class="mb-3" style="color:var(--accent);"><i class="bi bi-fire me-2"></i>热门推荐</h5>
                 <div id="popularList" class="row g-3">
                     <div class="col-12 text-center py-3">
                         <div class="spinner-border spinner-border-sm text-secondary"></div>
@@ -230,8 +230,8 @@
                 }
                 container.innerHTML = '';
                 r.data.items.forEach(b => {
-                    const badge = b.borrow_count > 0
-                        ? '<span class="badge position-absolute top-0 end-0 m-1" style="background:#FF6699;font-size:0.7rem;">借过' + b.borrow_count + '次</span>'
+                    const badge = b.user_borrow_count > 0
+                        ? '<span class="badge position-absolute top-0 end-0 m-1" style="background:var(--accent);font-size:0.7rem;">借过' + b.user_borrow_count + '次</span>'
                         : '';
                     const col = document.createElement('div');
                     col.className = 'col-6 col-md-3';

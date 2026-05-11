@@ -1,7 +1,7 @@
 from flask import Blueprint, request
 from app.services import comment_service
 from app.utils.response import success, error, paginated
-from app.utils.jwt_helper import login_required, admin_required
+from app.utils.jwt_helper import login_required, _verify_token
 from app.utils.kiosk import kiosk_blocked
 
 comment_bp = Blueprint('comment', __name__)
@@ -38,7 +38,12 @@ def get_comments():
     if not book_id:
         return error(400, '缺少book_id参数')
 
-    result = comment_service.get_comments(book_id, page, per_page)
+    current_user_id = None
+    user, _ = _verify_token()
+    if user:
+        current_user_id = user.id
+
+    result = comment_service.get_comments(book_id, page, per_page, current_user_id)
     return paginated(**result)
 
 
@@ -49,7 +54,9 @@ def like_comment(current_user, comment_id):
     result, err, code = comment_service.like_comment(current_user, comment_id)
     if err:
         return error(code or 400, err)
-    return success(result, '点赞成功')
+    if result.get('is_liked'):
+        return success(result, '点赞成功')
+    return success(result, '取消点赞')
 
 
 @comment_bp.route('/<int:comment_id>/report', methods=['POST'])
@@ -60,3 +67,13 @@ def report_comment(current_user, comment_id):
     if err:
         return error(code or 400, err)
     return success(result, '举报已提交')
+
+
+@comment_bp.route('/<int:comment_id>', methods=['DELETE'])
+@login_required
+@kiosk_blocked
+def delete_comment(current_user, comment_id):
+    result, err, code = comment_service.delete_comment(current_user, comment_id)
+    if err:
+        return error(code or 400, err)
+    return success(result, '评论已删除')

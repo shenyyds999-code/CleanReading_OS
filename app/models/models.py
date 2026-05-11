@@ -109,9 +109,24 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     replies = db.relationship('Comment', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
+    likes = db.relationship('CommentLike', backref='comment', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Comment user={self.user_id} book={self.book_id}>'
+
+
+class CommentLike(db.Model):
+    __tablename__ = 'comment_likes'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comments.id'), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'comment_id'),)
+
+    def __repr__(self):
+        return f'<CommentLike user={self.user_id} comment={self.comment_id}>'
 
 
 class QuizQuestion(db.Model):

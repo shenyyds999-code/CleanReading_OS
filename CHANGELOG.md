@@ -4,6 +4,66 @@
 
 ---
 
+## [0.4.1] - 2026-05-10
+
+### 修复
+
+- **借阅标签仅本人可见** — 热门图书列表中的"借过N次"标签现在只显示当前登录用户自己的借阅次数，而非全局统计
+- **站点名称闪烁** — `.site-name` 元素默认 `visibility: hidden`，`loadSiteName()` 完成后才显示，消除从"校园图书馆"到自定义名称的闪烁
+- **评论点赞与操作权限**
+  - 点赞改为 toggle 模式（点一次点赞，再点一次取消），新增 `CommentLike` 表防重复
+  - 自己的评论显示"删除"按钮，他人评论显示"举报"按钮
+  - 新增 `DELETE /api/comments/<id>` 端点，用户可删除自己的评论
+
+### 新增
+
+- **还书确认通知** — 管理员确认还书后，系统自动向用户发送通知（区分 完好 / 轻微污损 / 严重破损 三种内容）
+- **评论删除通知** — 被举报的评论被管理员删除后，系统通知评论作者"评论已被移除"
+
+### 优化
+
+- 图书详情页表格标签颜色从 `text-muted` 优化为 `rgb(33,37,41)`
+
+---
+
+## [0.4.0] - 2026-05-10
+
+### 新增 · Phase 4 管理后台与全流程贯通
+
+#### 管理端后台 (admin/)
+- 独立登录页 `login.html` — 角色验证，仅 role 2/3 可登录
+- 管理主页 `index.html` — SPA 侧边栏 + 7 面板一体化
+  - **仪表盘** — 8 项统计卡片（图书总量/用户总数/在借/待审核还书/捐书/图片/被举报评论/超期）+ 系统配置（站点名称修改，role=3）
+  - **书籍管理** — CRUD 操作 + ISBN 自动填充（OpenLibrary API）
+  - **还书审核** — 列表 + 完好/污损两级确认
+  - **捐书审核** — 列表 + 通过/拒绝 + 拒绝原因
+  - **图片审核** — 网格展示 + 通过/拒绝
+  - **评论管理** — 列表 + 被举报过滤 + 删除
+  - **用户管理** — 仅 super_admin 可见，支持信誉分调整
+
+#### 管理端 API
+- `GET /api/admin/stats` — 仪表盘统计
+- `GET/POST /api/admin/books` — 书籍列表/新增
+- `PUT/DELETE /api/admin/books/<id>` — 编辑/删除
+- `GET /api/admin/returns` — 还书记录列表
+- `GET /api/admin/donations` — 捐书列表
+- `POST /api/admin/donations/review` — 审核捐书
+- `GET /api/admin/images` — 图片审核列表
+- `POST /api/admin/images/review` — 审核图片
+- `GET /api/admin/comments` — 评论管理
+- `DELETE /api/admin/comments/<id>` — 删除评论
+- `GET /api/admin/users` — 用户列表（super_admin）
+- `POST /api/admin/users/credit` — 信誉分调整（super_admin）
+
+#### 系统配置
+- `GET /api/system/config` — 获取站点配置
+- `PUT /api/system/config` — 更新站点名称（super_admin）
+
+#### 部署
+- `deploy.sh` — Ubuntu 一键部署脚本（系统依赖/MySQL/Gunicorn/Nginx/虚拟环境）
+
+---
+
 ## [0.3.0] - 2026-05-09
 
 ### 新增 · Phase 3 用户生态扩展
@@ -189,6 +249,8 @@
 
 | 版本 | 标签 | 日期 | 说明 |
 |------|------|------|------|
+| 0.4.1 | `v0.4.1` | 2026-05-10 | 修复 + 通知增强 |
+| 0.4.0 | `v0.4.0` | 2026-05-10 | Phase 4 管理后台与全流程贯通 |
 | 0.3.0 | `v0.3.0` | 2026-05-09 | Phase 3 用户生态扩展 |
 | 0.2.0 | `v0.2.0` | 2026-05-09 | Phase 2 核心借阅闭环 |
 | 0.1.0 | `v0.1.0` | 2026-05-09 | Phase 1 骨架搭建 + Redis 缓存层 |
