@@ -172,50 +172,67 @@
             let bookData = null;
 
             async function loadBook() {
-                const r = await apiGet('/books/' + bkId);
-                document.getElementById('loadingArea').classList.add('d-none');
-                if (!r || r.code !== 200) { showToast('图书不存在', 'error'); return; }
+                try {
+                    console.log('[loadBook] 开始加载图书信息, book_id:', bkId);
+                    const r = await apiGet('/books/' + bkId);
+                    console.log('[loadBook] API 返回:', r);
+                    document.getElementById('loadingArea').classList.add('d-none');
+                    if (!r || r.code !== 200) { showToast('图书不存在', 'error'); return; }
 
-                bookData = r.data;
-                document.getElementById('detailArea').classList.remove('d-none');
+                    bookData = r.data;
+                    document.getElementById('detailArea').classList.remove('d-none');
 
-                const cover = document.getElementById('bookCover');
-                cover.innerHTML = bookData.cover_image_url
-                    ? '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.style.display=\'none\'">'
-                    : '<i class="bi bi-book"></i>';
+                    const cover = document.getElementById('bookCover');
+                    cover.innerHTML = bookData.cover_image_url
+                        ? '<img src="' + bookData.cover_image_url + '" class="w-100 h-100" style="object-fit:cover;" onerror="this.style.display=\'none\'">'
+                        : '<i class="bi bi-book"></i>';
 
-                document.getElementById('bookTitle').textContent = bookData.title;
-                document.getElementById('bookAuthor').textContent = bookData.author;
-                document.getElementById('bookIsbn').textContent = bookData.isbn;
-                document.getElementById('bookCategory').textContent = bookData.category || '-';
-                document.getElementById('bookPublisher').textContent = bookData.publisher || '-';
-                document.getElementById('bookLocation').textContent = bookData.location || '-';
-                document.getElementById('bookCopies').textContent = bookData.available_copies + ' / ' + bookData.total_copies;
-                document.getElementById('bookDesc').textContent = bookData.description || '暂无简介';
+                    document.getElementById('bookTitle').textContent = bookData.title;
+                    document.getElementById('bookAuthor').textContent = bookData.author;
+                    document.getElementById('bookIsbn').textContent = bookData.isbn;
+                    document.getElementById('bookCategory').textContent = bookData.category || '-';
+                    document.getElementById('bookPublisher').textContent = bookData.publisher || '-';
+                    document.getElementById('bookLocation').textContent = bookData.location || '-';
+                    document.getElementById('bookCopies').textContent = bookData.available_copies + ' / ' + bookData.total_copies;
+                    document.getElementById('bookDesc').textContent = bookData.description || '暂无简介';
 
-                const sb = document.getElementById('bookStatus');
-                sb.className = 'badge fs-6 ' + (bookData.can_borrow ? 'bg-success' : 'bg-secondary');
-                sb.textContent = bookData.can_borrow ? '可借' : (bookData.available_copies > 0 ? bookData.status : '已借完');
+                    const sb = document.getElementById('bookStatus');
+                    sb.className = 'badge fs-6 ' + (bookData.can_borrow ? 'bg-success' : 'bg-secondary');
+                    sb.textContent = bookData.can_borrow ? '可借' : (bookData.available_copies > 0 ? bookData.status : '已借完');
 
-                const bb = document.getElementById('borrowBtn');
-                bb.disabled = true;
-                bb.textContent = '检查中...';
+                    const bb = document.getElementById('borrowBtn');
+                    bb.disabled = true;
+                    bb.textContent = '检查中...';
+                    console.log('[loadBook] 开始检查借阅状态');
 
-                const statusCheck = await apiGet('/borrow/status?book_id=' + bkId);
-                if (statusCheck && statusCheck.code === 200 && statusCheck.data.borrowed) {
-                    bb.textContent = '已借阅';
-                    document.getElementById('borrowInfo').textContent = '请先归还后再借';
-                    return;
-                }
+                    try {
+                        const statusCheck = await apiGet('/borrow/status?book_id=' + bkId);
+                        console.log('[loadBook] 借阅状态 API 返回:', statusCheck);
+                        if (statusCheck && statusCheck.code === 200 && statusCheck.data.borrowed) {
+                            bb.textContent = '已借阅';
+                            document.getElementById('borrowInfo').textContent = '请先归还后再借';
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('[loadBook] 检查借阅状态失败:', e);
+                    }
 
-                if (bookData.can_borrow && cs >= 3) {
-                    bb.disabled = false;
-                    const days = cs >= 5 ? 31 : 15;
-                    document.getElementById('borrowInfo').textContent = '借阅 ' + days + ' 天';
-                } else if (cs < 3) {
-                    bb.textContent = '信誉分不足';
-                } else {
-                    bb.textContent = '不可借';
+                    console.log('[loadBook] can_borrow:', bookData.can_borrow, 'credit_score:', cs);
+                    if (bookData.can_borrow && cs >= 3) {
+                        bb.disabled = false;
+                        bb.textContent = '借 阅';
+                        const days = cs >= 5 ? 31 : 15;
+                        document.getElementById('borrowInfo').textContent = '借阅 ' + days + ' 天';
+                        console.log('[loadBook] 按钮已启用');
+                    } else if (cs < 3) {
+                        bb.textContent = '信誉分不足';
+                    } else {
+                        bb.textContent = '不可借';
+                    }
+                } catch (e) {
+                    console.error('[loadBook] 加载图书信息失败:', e);
+                    document.getElementById('loadingArea').classList.add('d-none');
+                    showToast('加载图书信息失败', 'error');
                 }
             }
 
