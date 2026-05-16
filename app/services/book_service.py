@@ -2,6 +2,10 @@ from app.models import Book
 from app import db
 from sqlalchemy import or_
 import requests
+import re
+import time
+import json
+from bs4 import BeautifulSoup
 
 
 def openlibrary_cover_url(isbn, size='M'):
@@ -10,10 +14,131 @@ def openlibrary_cover_url(isbn, size='M'):
     return f'https://covers.openlibrary.org/b/isbn/{isbn}-{size}.jpg'
 
 
+def _douban_isbn_search(isbn):
+    """通过豆瓣搜索页获取图书信息"""
+    session = requests.Session()
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
+    }
+
+    search_url = f'https://book.douban.com/subject_search?search_text={isbn}&cat=1001'
+    resp = session.get(search_url, headers=headers, timeout=10)
+    resp.raise_for_status()
+
+    match = re.search(r'window\.__DATA__\s*=\s*({.*?});', resp.text, re.DOTALL)
+    if not match:
+        return None
+
+    data = json.loads(match.group(1))
+    items = data.get('items', [])
+    if not items:
+        return None
+
+    first_item = items[0]
+    book_url = first_item.get('url', '')
+    if not book_url:
+        return None
+
+    time.sleep(1)
+
+    book_resp = session.get(book_url, headers=headers, timeout=10)
+    book_resp.raise_for_status()
+    book_soup = BeautifulSoup(book_resp.text, 'lxml')
+
+    info_div = book_soup.find('div', id='info')
+    if not info_div:
+        return None
+
+    title_elem = book_soup.select_one('#wrapper > h1 > span')
+    title = title_elem.get_text(strip=True) if title_elem else ''
+
+    def _get_info(label):
+        pl_span = info_div.find('span', class_='pl', string=lambda t: t and label in t)
+        if not pl_span:
+            return ''
+        next_elem = pl_span.next_sibling
+        while next_elem:
+            if hasattr(next_elem, 'name') and next_elem.name == 'br':
+                next_elem = next_elem.next_sibling
+                continue
+            if hasattr(next_elem, 'name') and next_elem.name == 'a':
+                return next_elem.get_text(strip=True)
+            if hasattr(next_elem, 'get_text'):
+                text = next_elem.get_text(strip=True)
+                if text:
+                    return text
+            next_elem = next_elem.next_sibling
+        return ''
+
+    def _get_author():
+        author_spans = info_div.find_all('span', class_='pl', string=lambda t: t and '作者' in t)
+        if not author_spans:
+            return ''
+        authors = []
+        for pl_span in author_spans:
+            parent = pl_span.parent
+            if parent and parent.name == 'span':
+                links = parent.find_all('a')
+                for link in links:
+                    name = link.get_text(strip=True)
+                    if name and name not in authors:
+                        authors.append(name)
+        return ' / '.join(authors)
+
+    author = _get_author()
+    publisher = _get_info('出版社')
+    pub_date = _get_info('出版年')
+    pages = _get_info('页数')
+    price = _get_info('定价')
+    isbn_val = _get_info('ISBN')
+
+    cover_url = first_item.get('cover_url', '')
+    if cover_url:
+        cover_url = cover_url.replace('/view/subject/m/', '/view/subject/l/')
+    if not cover_url:
+        img_elem = book_soup.select_one('#mainpic > a > img')
+        if img_elem and img_elem.get('src'):
+            cover_url = img_elem['src'].replace('/view/subject/m/', '/view/subject/l/')
+
+    description = ''
+    intro_div = book_soup.find('div', class_='intro')
+    if intro_div:
+        description = intro_div.get_text(strip=True)
+
+    score_elem = book_soup.select_one('#interest_sectl > div > div.rating_self > strong')
+    score = score_elem.get_text(strip=True) if score_elem else ''
+
+    return {
+        'isbn': isbn_val or isbn,
+        'title': title,
+        'author': author,
+        'publisher': publisher,
+        'cover_url': cover_url,
+        'description': description,
+        'published': pub_date,
+        'pages': pages,
+        'price': price,
+        'douban_score': score,
+    }
+
+
 def isbn_lookup(isbn):
     isbn = (isbn or '').strip()
     if not isbn:
-        return None, 'ISBN不能为空'
+        return None, 'ISBN不能为空', None
+
+    try:
+        result = _douban_isbn_search(isbn)
+        if result and result.get('title'):
+            if not result.get('cover_url'):
+                result['cover_url'] = openlibrary_cover_url(isbn, 'M')
+            return result, None, None
+    except requests.Timeout:
+        pass
+    except Exception:
+        pass
 
     try:
         resp = requests.get(
@@ -22,13 +147,13 @@ def isbn_lookup(isbn):
             headers={'User-Agent': 'ClearReading/1.0'}
         )
         if resp.status_code == 404:
-            return None, '未找到该ISBN对应的图书信息'
+            return None, '未找到该ISBN对应的图书信息', None
         resp.raise_for_status()
         data = resp.json()
     except requests.Timeout:
-        return None, '查询超时，请重试'
+        return None, '查询超时，请重试', None
     except requests.RequestException:
-        return None, '查询OpenLibrary失败，请检查网络'
+        return None, '查询OpenLibrary失败，请检查网络', None
 
     result = {
         'isbn': isbn,
