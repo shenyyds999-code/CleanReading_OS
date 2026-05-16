@@ -43,3 +43,38 @@ def login_user(username, password):
         return None, '用户名或密码错误'
 
     return user, None
+
+
+def change_username(user, new_username):
+    new_username = sanitize_html(new_username.strip())
+    if not new_username or len(new_username) < 2 or len(new_username) > 80:
+        return None, '用户名长度需在2-80个字符之间'
+
+    if new_username == user.username:
+        return None, '新用户名与当前用户名相同'
+
+    existing = User.query.filter_by(username=new_username).first()
+    if existing:
+        return None, '该用户名已被使用'
+
+    user.username = new_username
+    db.session.commit()
+    return user, None
+
+
+def change_password(user, old_password, new_password):
+    if not old_password or not new_password:
+        return None, '密码不能为空'
+
+    if not check_password_hash(user.password_hash, old_password):
+        return None, '原密码错误'
+
+    if len(new_password) < 6:
+        return None, '新密码长度至少6位'
+
+    if old_password == new_password:
+        return None, '新密码不能与原密码相同'
+
+    user.password_hash = generate_password_hash(new_password)
+    db.session.commit()
+    return user, None

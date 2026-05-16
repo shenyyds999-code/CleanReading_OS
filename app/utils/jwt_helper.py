@@ -3,6 +3,7 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from flask import request
+from app import db
 from app.models import User
 from app.utils.response import error
 from app.utils.cache import cache_get, cache_set, cache_exists, CacheKey
@@ -50,7 +51,7 @@ def _verify_token():
         if cache_exists(blacklist_key):
             return None, '令牌已失效，请重新登录'
 
-    user = User.query.get(payload['user_id'])
+    user = db.session.get(User, payload['user_id'])
     if not user:
         return None, '用户不存在或已被禁用'
     return user, None

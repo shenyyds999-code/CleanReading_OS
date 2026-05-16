@@ -52,13 +52,13 @@ def get_user_borrow_records(user_id, page=1, per_page=20):
 
 
 def _record_dict(record):
-    book = Book.query.get(record.book_id)
+    book = db.session.get(Book, record.book_id)
     return {
         'id': record.id,
         'book_id': record.book_id,
         'book_title': book.title if book else '未知图书',
-        'borrow_date': record.borrow_date.strftime('%Y-%m-%d %H:%M:%S'),
-        'due_date': record.due_date.strftime('%Y-%m-%d %H:%M:%S'),
+        'borrow_date': record.borrow_date.strftime('%Y-%m-%d %H:%M:%S') if record.borrow_date else '',
+        'due_date': record.due_date.strftime('%Y-%m-%d %H:%M:%S') if record.due_date else '',
         'return_date': record.return_date.strftime('%Y-%m-%d %H:%M:%S') if record.return_date else None,
         'status': record.status,
         'damage_level': record.damage_level,

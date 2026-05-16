@@ -52,7 +52,7 @@ def get_comments(book_id, page=1, per_page=20, current_user_id=None):
 
 
 def like_comment(user, comment_id):
-    comment = Comment.query.get(comment_id)
+    comment = db.session.get(Comment, comment_id)
     if not comment:
         return None, '评论不存在', 404
 
@@ -71,7 +71,7 @@ def like_comment(user, comment_id):
 
 
 def report_comment(user, comment_id):
-    comment = Comment.query.get(comment_id)
+    comment = db.session.get(Comment, comment_id)
     if not comment:
         return None, '评论不存在', 404
     comment.is_reported = True
@@ -80,7 +80,7 @@ def report_comment(user, comment_id):
 
 
 def delete_comment(user, comment_id):
-    comment = Comment.query.get(comment_id)
+    comment = db.session.get(Comment, comment_id)
     if not comment:
         return None, '评论不存在', 404
     if comment.user_id != user.id and user.role not in (2, 3):

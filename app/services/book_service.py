@@ -81,7 +81,7 @@ def search_books(query='', search_type='fuzzy', page=1, per_page=20):
 
 
 def get_book(book_id):
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     if not book:
         return None
     return _book_dict(book)
@@ -106,7 +106,7 @@ def get_popular_books(limit=8, user_id=None):
     )
     result = []
     for p in popular:
-        book = Book.query.get(p.id)
+        book = db.session.get(Book, p.id)
         d = _book_dict(book)
         d['borrow_count'] = p.borrow_count
         d['user_borrow_count'] = 0

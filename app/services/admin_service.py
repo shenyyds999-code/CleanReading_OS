@@ -73,7 +73,7 @@ def create_book(data):
 
 
 def update_book(book_id, data):
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     if not book:
         return None, '图书不存在', 404
 
@@ -115,7 +115,7 @@ def update_book(book_id, data):
 
 
 def delete_book(book_id):
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     if not book:
         return None, '图书不存在', 404
 
@@ -144,7 +144,7 @@ def list_users(page=1, per_page=20, search=''):
 
 
 def adjust_credit(user_id, amount, reason, detail=''):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if not user:
         return None, '用户不存在', 404
 
@@ -191,8 +191,8 @@ def list_returns(page=1, per_page=20, status=None):
 
     items = []
     for r in pagination.items:
-        book = Book.query.get(r.book_id)
-        user = User.query.get(r.user_id)
+        book = db.session.get(Book, r.book_id)
+        user = db.session.get(User, r.user_id)
         items.append({
             'record_id': r.id,
             'user_id': r.user_id,
@@ -219,7 +219,7 @@ def list_donations(page=1, per_page=20, status=None):
 
     items = []
     for d in pagination.items:
-        user = User.query.get(d.user_id)
+        user = db.session.get(User, d.user_id)
         items.append({
             'id': d.id,
             'user_id': d.user_id,
@@ -236,7 +236,7 @@ def list_donations(page=1, per_page=20, status=None):
 
 
 def review_donation(donation_id, action, remark=''):
-    donation = Donation.query.get(donation_id)
+    donation = db.session.get(Donation, donation_id)
     if not donation:
         return None, '捐书记录不存在', 404
 
@@ -244,7 +244,7 @@ def review_donation(donation_id, action, remark=''):
         donation.status = '已审核'
         donation.admin_remark = remark or '审核通过'
 
-        user = User.query.get(donation.user_id)
+        user = db.session.get(User, donation.user_id)
         if user:
             user.credit_score = min(100, user.credit_score + 1)
             log = CreditLog(
@@ -290,8 +290,8 @@ def list_image_reviews(page=1, per_page=20, status=None):
 
     items = []
     for ir in pagination.items:
-        user = User.query.get(ir.user_id)
-        reviewer = User.query.get(ir.reviewer_id) if ir.reviewer_id else None
+        user = db.session.get(User, ir.user_id)
+        reviewer = db.session.get(User, ir.reviewer_id) if ir.reviewer_id else None
         items.append({
             'id': ir.id,
             'user_id': ir.user_id,
@@ -307,7 +307,7 @@ def list_image_reviews(page=1, per_page=20, status=None):
 
 
 def review_image(image_id, action, reviewer_id):
-    img = ImageReview.query.get(image_id)
+    img = db.session.get(ImageReview, image_id)
     if not img:
         return None, '图片审核记录不存在', 404
 
@@ -332,7 +332,7 @@ def list_comments(page=1, per_page=20, reported_only=False):
 
     items = []
     for c in pagination.items:
-        book = Book.query.get(c.book_id)
+        book = db.session.get(Book, c.book_id)
         items.append({
             'id': c.id,
             'user_id': c.user_id,
@@ -350,11 +350,11 @@ def list_comments(page=1, per_page=20, reported_only=False):
 
 
 def delete_comment(comment_id):
-    comment = Comment.query.get(comment_id)
+    comment = db.session.get(Comment, comment_id)
     if not comment:
         return None, '评论不存在', 404
 
-    book = Book.query.get(comment.book_id)
+    book = db.session.get(Book, comment.book_id)
     was_reported = comment.is_reported
     user_id = comment.user_id
 

@@ -112,7 +112,7 @@ def _question_dict(q):
 
 
 def _award_titles(user, book_id):
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     new_titles = []
 
     from app.models import BorrowRecord

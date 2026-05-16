@@ -94,7 +94,7 @@ def confirm_return(current_user):
     record.return_date = datetime.now(timezone.utc)
     record.updated_at = datetime.now(timezone.utc)
 
-    book = Book.query.get(record.book_id)
+    book = db.session.get(Book, record.book_id)
     if book:
         book.available_copies += 1
         if book.available_copies > 0:
@@ -144,12 +144,12 @@ def pending_returns(current_user):
     per_page = request.args.get('per_page', 20, type=int)
 
     records = BorrowRecord.query.filter_by(status='已提交归还').order_by(
-        BorrowRecord.return_date.desc()
+        BorrowRecord.borrow_date.desc()
     ).paginate(page=page, per_page=per_page, error_out=False)
 
     items = []
     for r in records:
-        book = Book.query.get(r.book_id)
+        book = db.session.get(Book, r.book_id)
         items.append({
             'record_id': r.id,
             'user_id': r.user_id,

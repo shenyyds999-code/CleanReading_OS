@@ -85,3 +85,41 @@ def _user_dict(user):
         'credit_score': user.credit_score,
         'avatar_url': user.avatar_url or ''
     }
+
+
+@auth_bp.route('/change-username', methods=['POST'])
+@login_required
+def change_username(current_user):
+    data = request.get_json(silent=True)
+    if not data:
+        return error(400, '请提供有效的JSON数据')
+
+    new_username = data.get('new_username', '')
+    user, err = auth_service.change_username(current_user, new_username)
+    if err:
+        return error(400, err)
+
+    from app.utils.cache import cache_delete
+    cache_delete(CacheKey.USER(current_user.id))
+    user_data = _user_dict(user)
+    cache_set(CacheKey.USER(user.id), user_data, 600)
+    return success(user_data, '用户名修改成功')
+
+
+@auth_bp.route('/change-password', methods=['POST'])
+@login_required
+def change_password(current_user):
+    data = request.get_json(silent=True)
+    if not data:
+        return error(400, '请提供有效的JSON数据')
+
+    old_password = data.get('old_password', '')
+    new_password = data.get('new_password', '')
+
+    user, err = auth_service.change_password(current_user, old_password, new_password)
+    if err:
+        return error(400, err)
+
+    from app.utils.cache import cache_delete
+    cache_delete(CacheKey.USER(current_user.id))
+    return success({}, '密码修改成功，请重新登录')

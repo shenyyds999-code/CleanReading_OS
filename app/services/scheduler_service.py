@@ -29,7 +29,7 @@ def check_overdue_and_penalize():
         if deductions_to_apply <= 0:
             continue
 
-        user = User.query.get(record.user_id)
+        user = db.session.get(User, record.user_id)
         if not user:
             continue
 

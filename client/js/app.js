@@ -8,9 +8,9 @@ function getToken() {
 
 function getSavedUser() {
     try {
-        const user = localStorage.getItem(USER_KEY);
+        var user = localStorage.getItem(USER_KEY);
         return user ? JSON.parse(user) : null;
-    } catch {
+    } catch (e) {
         return null;
     }
 }
@@ -33,10 +33,8 @@ function isLoggedIn() {
 }
 
 function getDefaultHeaders() {
-    const headers = {
-        'Content-Type': 'application/json'
-    };
-    const token = getToken();
+    var headers = { 'Content-Type': 'application/json' };
+    var token = getToken();
     if (token) {
         headers['Authorization'] = 'Bearer ' + token;
     }
@@ -44,11 +42,11 @@ function getDefaultHeaders() {
 }
 
 async function apiGet(url) {
-    const response = await fetch(API_BASE + url, {
+    var response = await fetch(API_BASE + url, {
         method: 'GET',
         headers: getDefaultHeaders()
     });
-    const data = await response.json();
+    var data = await response.json();
     if (data.code === 401) {
         clearAuth();
         window.location.href = '/client/login.html';
@@ -59,23 +57,23 @@ async function apiGet(url) {
 
 function loadSiteName() {
     fetch(API_BASE + '/system/config')
-        .then(r => r.json())
-        .then(data => {
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            var name = '';
             if (data.code === 200 && data.data.site_name) {
-                var name = data.data.site_name;
+                name = data.data.site_name;
                 document.title = document.title.replace(/校园图书馆/g, name);
-                var els = document.querySelectorAll('.site-name');
-                for (var i = 0; i < els.length; i++) {
-                    els[i].textContent = name;
-                    els[i].style.visibility = 'visible';
-                }
-            } else {
-                var els = document.querySelectorAll('.site-name');
-                for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
             }
-        }).catch(function() {
             var els = document.querySelectorAll('.site-name');
-            for (var i = 0; i < els.length; i++) els[i].style.visibility = 'visible';
+            for (var i = 0; i < els.length; i++) {
+                if (name) els[i].textContent = name;
+                els[i].style.visibility = 'visible';
+            }
+        }).catch(function () {
+            var els = document.querySelectorAll('.site-name');
+            for (var i = 0; i < els.length; i++) {
+                els[i].style.visibility = 'visible';
+            }
         });
 }
 
@@ -96,7 +94,9 @@ function applyAccentColor(hex) {
     var hr = Math.max(0, r - 35);
     var hg = Math.max(0, g - 17);
     var hb = Math.max(0, b - 25);
-    var hover = '#' + [hr, hg, hb].map(function (v) { return v.toString(16).padStart(2, '0'); }).join('');
+    var hover = '#' + [hr, hg, hb].map(function (v) {
+        return v.toString(16).padStart(2, '0');
+    }).join('');
 
     var accentVars = [
         ':root {',
@@ -132,7 +132,7 @@ function loadAccentColor() {
     fetch(API_BASE + '/user/settings', { headers: getDefaultHeaders() })
         .then(function (r) { return r.json(); })
         .then(function (data) {
-            if (data.code === 200 && data.data.theme_color) {
+            if (data.code === 200 && data.data && data.data.theme_color) {
                 applyAccentColor(data.data.theme_color);
             }
         }).catch(function () {});
@@ -142,12 +142,12 @@ loadAccentColor();
 loadSiteName();
 
 async function apiPost(url, body) {
-    const response = await fetch(API_BASE + url, {
+    var response = await fetch(API_BASE + url, {
         method: 'POST',
         headers: getDefaultHeaders(),
         body: JSON.stringify(body)
     });
-    const data = await response.json();
+    var data = await response.json();
     if (data.code === 401) {
         clearAuth();
         window.location.href = '/client/login.html';
@@ -157,43 +157,58 @@ async function apiPost(url, body) {
 }
 
 function showToast(msg, type) {
-    const container = document.getElementById('toast-container');
+    var container = document.getElementById('toast-container');
     if (!container) return;
 
-    const bgClass = type === 'success' ? 'bg-success' :
-                    type === 'error' ? 'bg-danger' :
-                    type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
+    var bgClass = type === 'success' ? 'bg-success' :
+        type === 'error' ? 'bg-danger' :
+        type === 'warning' ? 'bg-warning text-dark' : 'bg-info';
 
-    const toastEl = document.createElement('div');
-    toastEl.className = `toast align-items-center text-white ${bgClass} border-0`;
+    var toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center text-white ' + bgClass + ' border-0';
     toastEl.setAttribute('role', 'alert');
-    toastEl.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${msg}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>`;
+    toastEl.innerHTML =
+        '<div class="d-flex">' +
+        '<div class="toast-body">' + msg + '</div>' +
+        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+        '</div>';
     container.appendChild(toastEl);
 
-    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    var toast = new bootstrap.Toast(toastEl, { delay: 3000 });
     toast.show();
-    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    toastEl.addEventListener('hidden.bs.toast', function () { toastEl.remove(); });
 }
 
-function checkAuthAndRedirect() {
+async function checkAuthAndRedirect() {
     if (!isLoggedIn()) {
-        const currentPage = window.location.pathname.split('/').pop();
-        if (currentPage !== 'login.html' && currentPage !== 'register.html') {
+        var cp = window.location.pathname.split('/').pop();
+        if (cp !== 'login.html' && cp !== 'register.html') {
             window.location.href = '/client/login.html';
         }
         return null;
     }
 
-    const pageless = ['login.html', 'register.html'];
-    const currentPage = window.location.pathname.split('/').pop();
-    if (pageless.includes(currentPage)) {
+    var pageless = ['login.html', 'register.html'];
+    var cp = window.location.pathname.split('/').pop();
+    if (pageless.indexOf(cp) !== -1) {
         window.location.href = '/client/index.html';
         return null;
     }
 
-    return getSavedUser();
+    var user = getSavedUser();
+    if (!user) {
+        try {
+            var resp = await fetch(API_BASE + '/auth/me', { headers: getDefaultHeaders() });
+            var data = await resp.json();
+            if (data.code === 200 && data.data) {
+                saveUser(data.data);
+                return data.data;
+            }
+        } catch (e) {}
+        clearAuth();
+        window.location.href = '/client/login.html';
+        return null;
+    }
+
+    return user;
 }

@@ -32,7 +32,7 @@ def request_borrow(current_user):
     if not book_id:
         return error(400, '缺少book_id参数')
 
-    book = Book.query.get(book_id)
+    book = db.session.get(Book, book_id)
     if not book:
         return error(404, '图书不存在')
 
