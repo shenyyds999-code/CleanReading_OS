@@ -8,6 +8,12 @@ import json
 from bs4 import BeautifulSoup
 
 
+import os
+import base64
+import io
+from PIL import Image
+
+
 def openlibrary_cover_url(isbn, size='M'):
     if not isbn:
         return ''
@@ -96,11 +102,13 @@ def _douban_isbn_search(isbn):
 
     cover_url = first_item.get('cover_url', '')
     if cover_url:
-        cover_url = cover_url.replace('/view/subject/m/', '/view/subject/l/')
+        cover_url = cover_url.replace('/view/subject/s/', '/view/subject/l/').replace('/view/subject/m/', '/view/subject/l/')
+        cover_url = re.sub(r'https?://img\d+\.doubanio\.com', 'https://img1.doubanio.com', cover_url)
     if not cover_url:
         img_elem = book_soup.select_one('#mainpic > a > img')
         if img_elem and img_elem.get('src'):
-            cover_url = img_elem['src'].replace('/view/subject/m/', '/view/subject/l/')
+            cover_url = img_elem['src'].replace('/view/subject/s/', '/view/subject/l/').replace('/view/subject/m/', '/view/subject/l/')
+            cover_url = re.sub(r'https?://img\d+\.doubanio\.com', 'https://img1.doubanio.com', cover_url)
 
     description = ''
     intro_div = book_soup.find('div', class_='intro')
@@ -172,6 +180,52 @@ def isbn_lookup(isbn):
         result['publisher'] = publishers[0]
 
     return result, None, None
+
+
+def search_cover_by_isbn(isbn):
+    """搜索封面图，返回图片URL列表"""
+    isbn = (isbn or '').strip()
+    if not isbn:
+        return [], 'ISBN不能为空'
+
+    cover_urls = []
+
+    try:
+        result = _douban_isbn_search(isbn)
+        if result and result.get('cover_url'):
+            cover_urls.append(result['cover_url'])
+    except Exception:
+        pass
+
+    ol_url = openlibrary_cover_url(isbn, 'L')
+    if ol_url:
+        cover_urls.append(ol_url)
+
+    if not cover_urls:
+        return [], '未找到封面'
+
+    return cover_urls, None
+
+
+def download_cover(url):
+    """下载封面图，返回base64编码的图片"""
+    try:
+        resp = requests.get(url, timeout=10, headers={
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        })
+        resp.raise_for_status()
+
+        img = Image.open(io.BytesIO(resp.content))
+        img = img.convert('RGB')
+        img.thumbnail((400, 600))
+
+        buf = io.BytesIO()
+        img.save(buf, format='JPEG', quality=85)
+        img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+
+        return img_b64, None
+    except Exception as e:
+        return None, str(e)
 
 
 def search_books(query='', search_type='fuzzy', page=1, per_page=20):

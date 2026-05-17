@@ -4,6 +4,10 @@ from app.utils.response import success, error, paginated
 from app.utils.jwt_helper import login_required, _verify_token
 from app.utils.kiosk import kiosk_blocked
 from app.utils.cache import cache_get, cache_set, cache_delete, CacheKey
+from app import db
+from app.models import Book
+import base64
+import os
 
 books_bp = Blueprint('books', __name__)
 
@@ -47,6 +51,43 @@ def isbn_lookup(current_user):
     if err:
         return error(code or 400, err)
     return success(result)
+
+
+@books_bp.route('/cover-search', methods=['GET'])
+@login_required
+def cover_search(current_user):
+    isbn = request.args.get('isbn', '').strip()
+    if not isbn:
+        return error(400, '请提供ISBN参数')
+    urls, err = book_service.search_cover_by_isbn(isbn)
+    if err:
+        return error(400, err)
+    return success({'urls': urls})
+
+
+@books_bp.route('/cover-download', methods=['POST'])
+@login_required
+def cover_download(current_user):
+    data = request.get_json()
+    url = data.get('url', '').strip()
+    book_id = data.get('book_id')
+    if not url:
+        return error(400, '请提供封面URL')
+    img_b64, err = book_service.download_cover(url)
+    if err:
+        return error(500, f'下载失败: {err}')
+    if book_id:
+        book = db.session.get(Book, book_id)
+        if book:
+            filename = f'cover_{book_id}.jpg'
+            upload_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'covers', filename)
+            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+            with open(upload_path, 'wb') as f:
+                f.write(base64.b64decode(img_b64))
+            book.cover_image_url = f'/static/uploads/covers/{filename}'
+            db.session.commit()
+            return success({'image_url': book.cover_image_url})
+    return success({'image_data': f'data:image/jpeg;base64,{img_b64}'})
 
 
 @books_bp.route('/<int:book_id>', methods=['GET'])
