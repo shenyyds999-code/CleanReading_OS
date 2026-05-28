@@ -18,12 +18,6 @@
         .comment-item { border-bottom: 1px solid #4a5056; padding: 16px 0; color: #ddd; }
         .comment-item strong { color: #e0e0e0; }
         .comment-item p { color: #ccc; }
-        .chat-window { position: fixed; bottom: 20px; right: 20px; width: 360px; max-height: 480px; z-index: 1050; display: none; }
-        .chat-body { height: 280px; overflow-y: auto; background: #24272a; }
-        .chat-message { margin-bottom: 8px; max-width: 85%; }
-        .chat-message.user { margin-left: auto; background: var(--accent); color: #fff; border-radius: 16px 16px 4px 16px; padding: 10px 14px; }
-        .chat-message.ai { margin-right: auto; background: #4a5056; color: #e0e0e0; border-radius: 16px 16px 16px 4px; padding: 10px 14px; }
-        .chat-toggle { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; font-size: 24px; z-index: 1051; }
         .card { background: #363b3f; border-color: #4a5056; }
         .card-body { color: #e0e0e0; }
         .card-footer { background: #363b3f; border-color: #4a5056; }
@@ -127,25 +121,6 @@
                 <hr class="my-4" id="recommendDivider" style="display:none;">
                 <h5 class="mb-3" id="recommendTitle" style="display:none;"><i class="bi bi-exclamation-circle me-2"></i>你可能错过了</h5>
                 <div id="recommendBooks" class="row g-3" style="display:none;"></div>
-            </div>
-        </div>
-    </div>
-
-    <button class="btn btn-info chat-toggle shadow-lg" id="chatToggleBtn" title="AI 助手 琪露诺">
-        <i class="bi bi-robot text-white"></i>
-    </button>
-    <div class="card shadow-lg chat-window" id="chatWindow">
-        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-            <span><i class="bi bi-snow2 me-1"></i> 琪露诺 · AI 助手</span>
-            <button class="btn-close btn-close-white" id="chatCloseBtn"></button>
-        </div>
-        <div class="card-body chat-body p-3" id="chatBody">
-            <div class="chat-message ai">你好呀~我是琪露诺！有什么关于书的问题尽管问本小姐吧！</div>
-        </div>
-        <div class="card-footer p-2">
-            <div class="input-group">
-                <input type="text" id="chatInput" class="form-control" placeholder="问点什么吧~">
-                <button class="btn btn-info text-white" id="chatSendBtn"><i class="bi bi-send"></i></button>
             </div>
         </div>
     </div>
@@ -360,35 +335,6 @@
             });
 
             function escHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
-
-            const chatToggle = document.getElementById('chatToggleBtn');
-            const chatWindow = document.getElementById('chatWindow');
-            const chatClose = document.getElementById('chatCloseBtn');
-            chatToggle.addEventListener('click', () => { chatWindow.style.display = 'block'; chatToggle.style.display = 'none'; });
-            chatClose.addEventListener('click', () => { chatWindow.style.display = 'none'; chatToggle.style.display = 'block'; });
-
-            function addChatMsg(text, type) {
-                const el = document.createElement('div');
-                el.className = 'chat-message ' + type;
-                el.textContent = text;
-                document.getElementById('chatBody').appendChild(el);
-                document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
-            }
-
-            async function sendChat() {
-                const input = document.getElementById('chatInput');
-                const msg = input.value.trim();
-                if (!msg) return;
-                addChatMsg(msg, 'user');
-                input.value = '';
-                document.getElementById('chatSendBtn').disabled = true;
-                const r = await apiPost('/ai/chat', { message: msg, book_title: bookData?.title || '' });
-                document.getElementById('chatSendBtn').disabled = false;
-                const reply = r?.data?.reply || '啊咧，本小姐出故障了~';
-                addChatMsg(reply, 'ai');
-            }
-            document.getElementById('chatSendBtn').addEventListener('click', sendChat);
-            document.getElementById('chatInput').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
 
             loadBook();
             loadComments();
