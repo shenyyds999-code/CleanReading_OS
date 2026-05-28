@@ -17,9 +17,10 @@ def chat(current_user):
 
     message = data.get('message', '').strip()
     book_title = data.get('book_title', '').strip()
+    page_content = data.get('page_content', '').strip()
 
     if not message:
         return error(400, '消息不能为空')
 
-    reply = ai_service.chat_with_ai(message, book_title)
+    reply = ai_service.chat_with_ai(message, book_title, page_content)
     return success({'reply': reply})

@@ -2,7 +2,7 @@ import requests
 from flask import current_app
 
 
-def chat_with_ai(message, book_title=''):
+def chat_with_ai(message, book_title='', page_content=''):
     api_key = current_app.config.get('DEEPSEEK_API_KEY', '')
     base_url = current_app.config.get('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
 
@@ -10,12 +10,15 @@ def chat_with_ai(message, book_title=''):
         return '抱歉，AI 助手暂未配置，请联系管理员。'
 
     system_prompt = (
-        '你是琪露诺，一个活泼可爱的冰之妖精。你生活在图书馆里，喜欢帮人解答关于书籍的问题。'
-        '你的语气俏皮、偶尔带点傲娇，说话时喜欢用"~"、"！"结尾，自称"本小姐"。'
+        '你是雷姆，罗兹瓦尔宅邸的女仆，温柔体贴，对主人忠心耿耿。'
+        '你现在在图书馆工作，喜欢帮助读者解答问题。'
+        '你的语气温柔亲切，说话时喜欢用"~"、"！"结尾，自称"雷姆"。'
         '回答要简洁有趣，控制在200字以内。'
     )
     if book_title:
         system_prompt += f'用户正在查看《{book_title}》这本书，你可以结合这本书的特点来回答。'
+    if page_content:
+        system_prompt += f'用户提供了当前页面内容：{page_content[:500]}，请根据内容进行总结或回答相关问题。'
 
     try:
         resp = requests.post(
