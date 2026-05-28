@@ -29,7 +29,7 @@
         if (document.getElementById('live2d-container')) return;
         var c = document.createElement('div');
         c.id = 'live2d-container';
-        c.style.cssText = 'position:fixed;right:10px;bottom:5px;width:180px;z-index:9998;';
+        c.style.cssText = 'position:fixed;right:10px;bottom:100px;width:180px;z-index:9996;';
         c.innerHTML = '<img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:100%;opacity:0.9;cursor:pointer;" onerror="this.parentElement.remove()" onclick="showLive2dTip();">';
         document.body.appendChild(c);
 
@@ -37,7 +37,7 @@
         if (!tip) {
             tip = document.createElement('div');
             tip.id = 'live2d-tip';
-            tip.style.cssText = 'position:fixed;right:30px;bottom:280px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
+            tip.style.cssText = 'position:fixed;right:30px;bottom:350px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
             document.body.appendChild(tip);
         }
 
@@ -49,7 +49,7 @@
     if (!tipBox) {
         tipBox = document.createElement('div');
         tipBox.id = 'live2d-tip';
-        tipBox.style.cssText = 'position:fixed;right:30px;bottom:280px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
+        tipBox.style.cssText = 'position:fixed;right:30px;bottom:350px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
         document.body.appendChild(tipBox);
     }
 
@@ -76,40 +76,40 @@
 
         var panel = document.createElement('div');
         panel.id = 'live2d-chat-panel';
-        panel.style.cssText = 'position:fixed;right:10px;bottom:220px;width:260px;z-index:9997;background:rgba(54,59,63,0.95);border-radius:16px;border:1px solid #4a5056;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;';
+        panel.style.cssText = 'position:fixed;right:10px;bottom:10px;width:280px;z-index:9999;background:rgba(54,59,63,0.95);border-radius:16px;border:1px solid #4a5056;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;';
         
         var header = document.createElement('div');
-        header.innerHTML = '<div style="padding:10px 12px;border-bottom:1px solid #4a5056;display:flex;align-items:center;gap:8px;"><img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:32px;height:32px;border-radius:8px;object-fit:cover;"><span style="color:#e0e0e0;font-weight:500;">雷姆</span></div>';
+        header.innerHTML = '<div style="padding:10px 12px;border-bottom:1px solid #4a5056;display:flex;align-items:center;gap:8px;"><img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"><span style="color:#e0e0e0;font-weight:500;font-size:14px;">雷姆</span></div>';
         panel.appendChild(header);
 
         var messages = document.createElement('div');
         messages.id = 'live2d-chat-messages';
-        messages.style.cssText = 'height:150px;overflow-y:auto;padding:10px;scrollbar-width:thin;scrollbar-color:#4a5056 transparent;';
-        messages.innerHTML = '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(255,102,153,0.15);border-radius:12px 12px 12px 4px;color:#e0e0e0;font-size:13px;">雷姆：主人~有什么想聊的吗？</div>';
+        messages.style.cssText = 'height:160px;overflow-y:auto;padding:10px 12px;scrollbar-width:thin;scrollbar-color:#4a5056 transparent;';
+        messages.innerHTML = createRemBubble('主人~有什么想聊的吗？');
         panel.appendChild(messages);
 
         var inputArea = document.createElement('div');
-        inputArea.style.cssText = 'display:flex;gap:8px;padding:10px;border-top:1px solid #4a5056;';
+        inputArea.style.cssText = 'display:flex;gap:6px;padding:8px 12px;border-top:1px solid #4a5056;';
         
         var input = document.createElement('input');
         input.type = 'text';
         input.id = 'live2d-chat-input';
-        input.placeholder = '输入消息...';
-        input.style.cssText = 'flex:1;padding:8px 12px;border:none;border-radius:20px;background:#24272a;color:#e0e0e0;font-size:13px;outline:none;';
+        input.placeholder = '和雷姆聊天...';
+        input.style.cssText = 'flex:1;padding:8px 14px;border:none;border-radius:20px;background:#24272a;color:#e0e0e0;font-size:13px;outline:none;';
         inputArea.appendChild(input);
-
-        var sendBtn = document.createElement('button');
-        sendBtn.innerHTML = '<i class="bi bi-send"></i>';
-        sendBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:#FF6699;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;';
-        sendBtn.onclick = sendChat;
-        inputArea.appendChild(sendBtn);
 
         var summaryBtn = document.createElement('button');
         summaryBtn.innerHTML = '<i class="bi bi-file-text"></i>';
         summaryBtn.title = '总结当前页面';
-        summaryBtn.style.cssText = 'width:36px;height:36px;border-radius:50%;background:#0d6efd;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+        summaryBtn.style.cssText = 'width:34px;height:34px;border-radius:50%;background:#0d6efd;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;';
         summaryBtn.onclick = summarizePage;
         inputArea.appendChild(summaryBtn);
+
+        var sendBtn = document.createElement('button');
+        sendBtn.innerHTML = '<i class="bi bi-send"></i>';
+        sendBtn.style.cssText = 'width:34px;height:34px;border-radius:50%;background:#FF6699;border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;';
+        sendBtn.onclick = sendChat;
+        inputArea.appendChild(sendBtn);
 
         panel.appendChild(inputArea);
 
@@ -122,6 +122,28 @@
         });
     }
 
+    function createRemBubble(text) {
+        return `<div style="margin-bottom:10px;display:flex;align-items:flex-end;gap:6px;">
+            <img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:28px;height:28px;border-radius:50%;flex-shrink:0;">
+            <div style="position:relative;padding:8px 12px;background:rgba(255,102,153,0.2);border-radius:16px 16px 16px 4px;color:#e0e0e0;font-size:13px;max-width:calc(100% - 40px);">
+                <span style="color:#FF6699;font-weight:500;margin-right:4px;">雷姆</span>${text}
+                <div style="position:absolute;bottom:-4px;left:10px;width:8px;height:8px;background:rgba(255,102,153,0.2);transform:rotate(45deg);border-radius:0 0 0 2px;"></div>
+            </div>
+        </div>`;
+    }
+
+    function createUserBubble(text) {
+        return `<div style="margin-bottom:10px;display:flex;align-items:flex-end;gap:6px;justify-content:flex-end;">
+            <div style="position:relative;padding:8px 12px;background:#24272a;border-radius:16px 16px 4px 16px;color:#e0e0e0;font-size:13px;max-width:calc(100% - 40px);">
+                ${text}
+                <div style="position:absolute;bottom:-4px;right:10px;width:8px;height:8px;background:#24272a;transform:rotate(45deg);border-radius:0 0 2px 0;"></div>
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;background:#4a5056;display:flex;align-items:center;justify-content:center;color:#e0e0e0;font-size:12px;flex-shrink:0;">
+                <i class="bi bi-person"></i>
+            </div>
+        </div>`;
+    }
+
     async function sendChat() {
         var input = document.getElementById('live2d-chat-input');
         var messages = document.getElementById('live2d-chat-messages');
@@ -131,10 +153,10 @@
 
         input.value = '';
         
-        messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(33,37,41,0.8);border-radius:12px 12px 4px 12px;color:#e0e0e0;font-size:13px;text-align:right;">' + escapeHtml(text) + '</div>';
+        messages.innerHTML += createUserBubble(escapeHtml(text));
         messages.scrollTop = messages.scrollHeight;
 
-        var sendBtn = document.querySelector('#live2d-chat-panel button:first-of-type');
+        var sendBtn = document.querySelector('#live2d-chat-panel button:last-of-type');
         sendBtn.disabled = true;
         sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
@@ -154,10 +176,10 @@
             var data = await resp.json();
             var reply = data && data.data && data.data.reply ? data.data.reply : '雷姆有点累了呢...';
             
-            messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(255,102,153,0.15);border-radius:12px 12px 12px 4px;color:#e0e0e0;font-size:13px;">雷姆：' + escapeHtml(reply) + '</div>';
+            messages.innerHTML += createRemBubble(escapeHtml(reply));
             messages.scrollTop = messages.scrollHeight;
         } catch (e) {
-            messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(220,53,69,0.15);border-radius:12px 12px 12px 4px;color:#ff6b6b;font-size:13px;">连接失败了呢...</div>';
+            messages.innerHTML += createRemBubble('连接失败了呢...');
         } finally {
             sendBtn.disabled = false;
             sendBtn.innerHTML = '<i class="bi bi-send"></i>';
@@ -166,7 +188,7 @@
 
     async function summarizePage() {
         var messages = document.getElementById('live2d-chat-messages');
-        var summaryBtn = document.querySelector('#live2d-chat-panel button:last-of-type');
+        var summaryBtn = document.querySelector('#live2d-chat-panel button:first-of-type');
         
         summaryBtn.disabled = true;
         summaryBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
@@ -174,11 +196,12 @@
         try {
             var pageContent = extractPageContent();
             if (!pageContent) {
-                messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(220,53,69,0.15);border-radius:12px 12px 12px 4px;color:#ff6b6b;font-size:13px;">当前页面没有可总结的内容呢~</div>';
+                messages.innerHTML += createRemBubble('当前页面没有可总结的内容呢~');
+                messages.scrollTop = messages.scrollHeight;
                 return;
             }
 
-            messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(33,37,41,0.8);border-radius:12px 12px 4px 12px;color:#e0e0e0;font-size:13px;text-align:right;">帮我总结一下当前页面</div>';
+            messages.innerHTML += createUserBubble('帮我总结一下当前页面');
             messages.scrollTop = messages.scrollHeight;
 
             var resp = await fetch('/api/ai/chat', {
@@ -197,10 +220,10 @@
             var data = await resp.json();
             var reply = data && data.data && data.data.reply ? data.data.reply : '雷姆看不懂呢...';
             
-            messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(255,102,153,0.15);border-radius:12px 12px 12px 4px;color:#e0e0e0;font-size:13px;">雷姆：' + escapeHtml(reply) + '</div>';
+            messages.innerHTML += createRemBubble(escapeHtml(reply));
             messages.scrollTop = messages.scrollHeight;
         } catch (e) {
-            messages.innerHTML += '<div style="margin-bottom:8px;padding:8px 12px;background:rgba(220,53,69,0.15);border-radius:12px 12px 12px 4px;color:#ff6b6b;font-size:13px;">连接失败了呢...</div>';
+            messages.innerHTML += createRemBubble('连接失败了呢...');
         } finally {
             summaryBtn.disabled = false;
             summaryBtn.innerHTML = '<i class="bi bi-file-text"></i>';
@@ -261,7 +284,7 @@
         var btn = document.createElement('button');
         btn.id = 'live2d-toggle';
         btn.innerHTML = isHidden ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
-        btn.style.cssText = 'position:fixed;right:10px;bottom:480px;width:36px;height:36px;border-radius:50%;background:rgba(54,59,63,0.9);border:1px solid #4a5056;color:#e0e0e0;cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;opacity:0.7;';
+        btn.style.cssText = 'position:fixed;right:10px;bottom:320px;width:36px;height:36px;border-radius:50%;background:rgba(54,59,63,0.9);border:1px solid #4a5056;color:#e0e0e0;cursor:pointer;z-index:9998;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;opacity:0.7;';
         btn.onmouseover = function() { btn.style.opacity = '1'; };
         btn.onmouseout = function() { btn.style.opacity = '0.7'; };
         btn.onclick = toggleLive2d;
@@ -331,7 +354,7 @@
                 }
             });
 
-            document.getElementById('live2d-widget')?.style?.setProperty?.('z-index', '9998');
+            document.getElementById('live2d-widget')?.style?.setProperty?.('z-index', '9996');
             
             createChatPanel();
             createToggleButton();
