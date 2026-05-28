@@ -691,7 +691,7 @@
     }
 
     async function loadQuizzes(page = 1) {
-        const r = await adminGet('/learn/questions?page=' + page);
+        const r = await adminGet('/learn/admin/questions?page=' + page);
         if (!r) return;
 
         const booksR = await adminGet('/admin/books?page=1&page_size=1000');

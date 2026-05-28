@@ -95,7 +95,7 @@ def generate_questions_ai(current_user):
     return success({'questions': questions, 'count': len(questions)}, f'成功生成{len(questions)}道题目')
 
 
-@learn_bp.route('/questions', methods=['GET'])
+@learn_bp.route('/admin/questions', methods=['GET'])
 @admin_required
 def admin_list_questions(current_user):
     page = request.args.get('page', 1, type=int)
