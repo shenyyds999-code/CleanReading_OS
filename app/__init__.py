@@ -41,9 +41,6 @@ def create_app(config_class=Config):
     from app.api.learn import learn_bp
     app.register_blueprint(learn_bp, url_prefix='/api/learn')
 
-    from app.api.ai import ai_bp
-    app.register_blueprint(ai_bp, url_prefix='/api/ai')
-
     from app.api.settings_api import settings_bp
     app.register_blueprint(settings_bp, url_prefix='/api/user/settings')
 

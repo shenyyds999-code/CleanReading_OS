@@ -70,3 +70,26 @@ def create_question(current_user):
         created_by=current_user.id
     )
     return success(question, '题目添加成功')
+
+
+@learn_bp.route('/ai/generate', methods=['POST'])
+@admin_required
+def generate_questions_ai(current_user):
+    data = request.get_json(silent=True)
+    if not data:
+        return error(400, '请提供有效的JSON数据')
+
+    book_id = data.get('book_id')
+    count = data.get('count', 5)
+
+    if not book_id:
+        return error(400, '缺少book_id参数')
+
+    if count < 1 or count > 10:
+        return error(400, '题目数量应在1-10之间')
+
+    questions, err = quiz_service.generate_questions_with_ai(book_id, count)
+    if err:
+        return error(400, err)
+
+    return success({'questions': questions, 'count': len(questions)}, f'成功生成{len(questions)}道题目')
