@@ -76,7 +76,8 @@
 
         var panel = document.createElement('div');
         panel.id = 'live2d-chat-panel';
-        panel.style.cssText = 'position:fixed;right:10px;bottom:10px;width:280px;z-index:9999;background:rgba(54,59,63,0.95);border-radius:16px;border:1px solid #4a5056;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;';
+        panel.style.cssText = 'position:fixed;right:10px;bottom:10px;width:280px;z-index:99999;background:rgba(54,59,63,0.95);border-radius:16px;border:1px solid #4a5056;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:flex;flex-direction:column;overflow:hidden;';
+        panel.style.setProperty('z-index', '99999', 'important');
         
         var header = document.createElement('div');
         header.innerHTML = '<div style="padding:10px 12px;border-bottom:1px solid #4a5056;display:flex;align-items:center;gap:8px;"><img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:28px;height:28px;border-radius:50%;object-fit:cover;"><span style="color:#e0e0e0;font-weight:500;font-size:14px;">雷姆</span></div>';
@@ -354,7 +355,19 @@
                 }
             });
 
-            document.getElementById('live2d-widget')?.style?.setProperty?.('z-index', '9996');
+            setTimeout(function() {
+                var widget = document.getElementById('live2d-widget');
+                if (widget) {
+                    widget.style.zIndex = '999';
+                    widget.style.setProperty('z-index', '999', 'important');
+                }
+                
+                var chatPanel = document.getElementById('live2d-chat-panel');
+                if (chatPanel) {
+                    chatPanel.style.zIndex = '99999';
+                    chatPanel.style.setProperty('z-index', '99999', 'important');
+                }
+            }, 500);
             
             createChatPanel();
             createToggleButton();
