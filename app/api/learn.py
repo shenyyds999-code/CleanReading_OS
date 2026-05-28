@@ -93,3 +93,28 @@ def generate_questions_ai(current_user):
         return error(400, err)
 
     return success({'questions': questions, 'count': len(questions)}, f'成功生成{len(questions)}道题目')
+
+
+@learn_bp.route('/questions', methods=['GET'])
+@admin_required
+def admin_list_questions(current_user):
+    page = request.args.get('page', 1, type=int)
+    page_size = request.args.get('page_size', 20, type=int)
+    book_id = request.args.get('book_id', type=int)
+
+    questions, total = quiz_service.list_questions(page, page_size, book_id)
+    return success({
+        'items': questions,
+        'total': total,
+        'page': page,
+        'page_size': page_size
+    })
+
+
+@learn_bp.route('/admin/questions/<int:question_id>', methods=['DELETE'])
+@admin_required
+def delete_question(current_user, question_id):
+    success, msg = quiz_service.delete_question(question_id)
+    if success:
+        return success(None, '题目已删除')
+    return error(400, msg)

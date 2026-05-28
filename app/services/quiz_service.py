@@ -103,12 +103,19 @@ def _check_answer(user_answer, correct, qtype):
 
 
 def _question_dict(q):
+    book_title = None
+    if q.book_id:
+        book = db.session.get(Book, q.book_id)
+        if book:
+            book_title = book.title
     return {
         'id': q.id,
         'book_id': q.book_id,
+        'book_title': book_title,
         'type': q.type,
         'question_text': q.question_text,
         'options': q.options,
+        'correct_answer_text': q.correct_answer_text,
         'score': q.score
     }
 
@@ -234,3 +241,21 @@ def generate_questions_with_ai(book_id, count=5):
         return None, 'AI 请求超时，请重试'
     except Exception as e:
         return None, f'AI 生成失败：{str(e)[:50]}'
+
+
+def list_questions(page=1, page_size=20, book_id=None):
+    query = QuizQuestion.query
+    if book_id:
+        query = query.filter_by(book_id=book_id)
+    total = query.count()
+    questions = query.order_by(QuizQuestion.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    return [_question_dict(q) for q in questions], total
+
+
+def delete_question(question_id):
+    question = db.session.get(QuizQuestion, question_id)
+    if not question:
+        return False, '题目不存在'
+    db.session.delete(question)
+    db.session.commit()
+    return True, None
