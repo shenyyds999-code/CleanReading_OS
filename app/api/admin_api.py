@@ -182,3 +182,48 @@ def delete_comment(current_user, comment_id):
     if err:
         return error(code or 400, err)
     return success(result, '评论已删除')
+
+
+@admin_bp.route('/users/<int:user_id>', methods=['DELETE'])
+@admin_required
+def delete_user(current_user, user_id):
+    if current_user.role != 3:
+        return error(403, '只有超级管理员可以删除用户')
+    if user_id == current_user.id:
+        return error(400, '不能删除自己')
+    result, err, code = admin_service.delete_user(user_id)
+    if err:
+        return error(code or 400, err)
+    return success(result, '用户已删除')
+
+
+import os
+import time
+from flask import current_app
+from werkzeug.utils import secure_filename
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@admin_bp.route('/upload-image', methods=['POST'])
+@admin_required
+def upload_image(current_user):
+    if 'file' not in request.files:
+        return error(400, '没有文件被上传')
+    file = request.files['file']
+    if file.filename == '':
+        return error(400, '没有选择文件')
+    if not allowed_file(file.filename):
+        return error(400, '不支持的文件类型')
+    filename = secure_filename(file.filename)
+    ext = filename.rsplit('.', 1)[1].lower()
+    unique_filename = f'cover_{int(time.time() * 1000)}.{ext}'
+    upload_folder = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'static', 'uploads', 'covers')
+    os.makedirs(upload_folder, exist_ok=True)
+    file_path = os.path.join(upload_folder, unique_filename)
+    file.save(file_path)
+    url = f'/static/uploads/covers/{unique_filename}'
+    return success({'url': url}, '上传成功')

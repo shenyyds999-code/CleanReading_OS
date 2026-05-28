@@ -373,6 +373,23 @@ def delete_comment(comment_id):
     return {'deleted': comment_id}, None, None
 
 
+def delete_user(user_id):
+    user = db.session.get(User, user_id)
+    if not user:
+        return None, '用户不存在', 404
+    if user.role == 3:
+        return None, '不能删除超级管理员', 400
+
+    BorrowRecord.query.filter_by(user_id=user_id).delete()
+    Comment.query.filter_by(user_id=user_id).delete()
+    CreditLog.query.filter_by(user_id=user_id).delete()
+    Notification.query.filter_by(user_id=user_id).delete()
+
+    db.session.delete(user)
+    db.session.commit()
+    return {'deleted': user_id}, None, None
+
+
 def _book_dict(book):
     from app.services.book_service import openlibrary_cover_url
     ol_cover = openlibrary_cover_url(book.isbn, 'M')

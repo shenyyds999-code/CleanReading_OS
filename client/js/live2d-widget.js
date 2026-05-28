@@ -12,6 +12,8 @@
         '注意信誉分哦~'
     ];
 
+    var isHidden = localStorage.getItem('live2d-hidden') === 'true';
+
     function loadScript(src, cb) {
         var s = document.createElement('script');
         s.src = src;
@@ -27,7 +29,7 @@
         var c = document.createElement('div');
         c.id = 'live2d-container';
         c.style.cssText = 'position:fixed;right:10px;bottom:5px;width:180px;z-index:9998;';
-        c.innerHTML = '<img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:100%;opacity:0.9;cursor:pointer;" onerror="this.parentElement.remove()" onclick="var t=document.getElementById(\'live2d-tip\');if(!t)return;t.textContent=\'' + tips[Math.floor(Math.random() * tips.length)] + '\';t.style.opacity=\'1\';setTimeout(function(){t.style.opacity=\'0\'},4000);">';
+        c.innerHTML = '<img src="https://cdn.jsdelivr.net/gh/evrstr/live2d-widget-models/live2d_evrstr/rem_2/remu2048/texture_00.png" style="width:100%;opacity:0.9;cursor:pointer;" onerror="this.parentElement.remove()" onclick="showLive2dTip();">';
         document.body.appendChild(c);
 
         var tip = document.getElementById('live2d-tip');
@@ -37,6 +39,8 @@
             tip.style.cssText = 'position:fixed;right:30px;bottom:280px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
             document.body.appendChild(tip);
         }
+
+        createToggleButton();
     }
 
     var tipBox = document.getElementById('live2d-tip');
@@ -53,10 +57,40 @@
         setTimeout(function () { tipBox.style.opacity = '0'; }, 4000);
     }
 
-    if (typeof L2Dwidget !== 'undefined') {
-        initWidget();
-    } else {
-        loadScript('https://cdn.jsdelivr.net/npm/live2d-widget@3.0.5/lib/L2Dwidget.min.js', initWidget);
+    window.showLive2dTip = function() {
+        showTip();
+    };
+
+    function createToggleButton() {
+        if (document.getElementById('live2d-toggle')) return;
+        
+        var btn = document.createElement('button');
+        btn.id = 'live2d-toggle';
+        btn.innerHTML = isHidden ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        btn.style.cssText = 'position:fixed;right:10px;bottom:200px;width:36px;height:36px;border-radius:50%;background:rgba(54,59,63,0.9);border:1px solid #4a5056;color:#e0e0e0;cursor:pointer;z-index:9999;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;opacity:0.7;';
+        btn.onmouseover = function() { btn.style.opacity = '1'; };
+        btn.onmouseout = function() { btn.style.opacity = '0.7'; };
+        btn.onclick = toggleLive2d;
+        document.body.appendChild(btn);
+    }
+
+    function toggleLive2d() {
+        isHidden = !isHidden;
+        localStorage.setItem('live2d-hidden', isHidden);
+        
+        var widget = document.getElementById('live2d-widget');
+        var container = document.getElementById('live2d-container');
+        var btn = document.getElementById('live2d-toggle');
+        
+        if (widget) {
+            widget.style.display = isHidden ? 'none' : 'block';
+        }
+        if (container) {
+            container.style.display = isHidden ? 'none' : 'block';
+        }
+        if (btn) {
+            btn.innerHTML = isHidden ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
+        }
     }
 
     function initWidget() {
@@ -100,10 +134,23 @@
             });
 
             document.getElementById('live2d-widget')?.style?.setProperty?.('z-index', '9998');
+            
+            createToggleButton();
+            
+            if (isHidden) {
+                var widget = document.getElementById('live2d-widget');
+                if (widget) widget.style.display = 'none';
+            }
         } catch (e) {
             console.warn('Live2D: L2Dwidget init failed', e.message);
             showFallback();
         }
+    }
+
+    if (typeof L2Dwidget !== 'undefined') {
+        initWidget();
+    } else {
+        loadScript('https://cdn.jsdelivr.net/npm/live2d-widget@3.0.5/lib/L2Dwidget.min.js', initWidget);
     }
 
     setInterval(showTip, 30000);

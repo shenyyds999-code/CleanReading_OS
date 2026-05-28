@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: cleanreading-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: library_system
+      MYSQL_USER: library
+      MYSQL_PASSWORD: librarypassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: cleanreading-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: cleanreading-app
+    ports:
+      - "5000:5000"
+    environment:
+      SECRET_KEY: "${SECRET_KEY:-your-secret-key-here}"
+      JWT_SECRET_KEY: "${JWT_SECRET_KEY:-your-jwt-secret-here}"
+      DATABASE_URL: mysql+pymysql://library:librarypassword@db:3306/library_system
+      REDIS_URL: redis://redis:6379/0
+      REDIS_ENABLED: "true"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./static/uploads:/app/static/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  redis-data:

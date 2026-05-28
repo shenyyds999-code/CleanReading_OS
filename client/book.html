@@ -92,6 +92,17 @@
                             <tr><td style="color:#e0e0e0;">馆藏</td><td id="bookCopies"></td></tr>
                         </table>
                         <p id="bookDesc" style="color:#ccc;"></p>
+                        <div id="ratingArea" class="mb-3">
+                            <span class="text-muted me-2">我的评分：</span>
+                            <div class="rating-stars d-inline-flex" role="group" aria-label="评分">
+                                <button class="btn btn-link text-muted p-0 me-1 rating-star" data-rating="1"><i class="bi bi-star fs-5"></i></button>
+                                <button class="btn btn-link text-muted p-0 me-1 rating-star" data-rating="2"><i class="bi bi-star fs-5"></i></button>
+                                <button class="btn btn-link text-muted p-0 me-1 rating-star" data-rating="3"><i class="bi bi-star fs-5"></i></button>
+                                <button class="btn btn-link text-muted p-0 me-1 rating-star" data-rating="4"><i class="bi bi-star fs-5"></i></button>
+                                <button class="btn btn-link text-muted p-0 me-1 rating-star" data-rating="5"><i class="bi bi-star fs-5"></i></button>
+                            </div>
+                            <span id="avgRatingText" class="text-muted ms-2"></span>
+                        </div>
                         <div class="mt-3">
                             <button id="borrowBtn" class="btn btn-primary btn-lg px-4" disabled>借 阅</button>
                             <span id="borrowInfo" class="text-muted ms-3"></span>
@@ -112,6 +123,10 @@
                 <div class="card shadow-sm">
                     <div class="card-body" id="commentList"></div>
                 </div>
+
+                <hr class="my-4" id="recommendDivider" style="display:none;">
+                <h5 class="mb-3" id="recommendTitle" style="display:none;"><i class="bi bi-exclamation-circle me-2"></i>你可能错过了</h5>
+                <div id="recommendBooks" class="row g-3" style="display:none;"></div>
             </div>
         </div>
     </div>
@@ -377,6 +392,72 @@
 
             loadBook();
             loadComments();
+            loadRecommendations();
+
+            document.querySelectorAll('.rating-star').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const rating = parseInt(this.dataset.rating);
+                    const r = await apiPost('/books/' + bkId + '/rating', { rating: rating });
+                    if (r && r.code === 200) {
+                        updateRatingStars(rating);
+                        document.getElementById('avgRatingText').textContent = '平均 ' + r.data.avg_rating + ' 分';
+                        showToast('评分成功', 'success');
+                    } else {
+                        showToast(r?.message || '评分失败', 'error');
+                    }
+                });
+            });
+
+            function updateRatingStars(rating) {
+                document.querySelectorAll('.rating-star').forEach(btn => {
+                    const starRating = parseInt(btn.dataset.rating);
+                    const icon = btn.querySelector('i');
+                    if (starRating <= rating) {
+                        btn.classList.remove('text-muted');
+                        btn.classList.add('text-warning');
+                        icon.className = 'bi bi-star-fill fs-5';
+                    } else {
+                        btn.classList.add('text-muted');
+                        btn.classList.remove('text-warning');
+                        icon.className = 'bi bi-star fs-5';
+                    }
+                });
+            }
+
+            async function loadRecommendations() {
+                const r = await apiGet('/books/' + bkId + '/recommendations');
+                if (r && r.data && r.data.items && r.data.items.length > 0) {
+                    document.getElementById('recommendDivider').style.display = '';
+                    document.getElementById('recommendTitle').style.display = '';
+                    const container = document.getElementById('recommendBooks');
+                    container.style.display = '';
+                    container.innerHTML = r.data.items.map(b => `
+                        <div class="col-6 col-md-3">
+                            <div class="card h-100 shadow-sm" onclick="window.location.href='book.html?id=${b.id}'" style="cursor:pointer;">
+                                <div style="height:180px;overflow:hidden;background:#24272a;">
+                                    <img src="${b.cover_image_url || b.openlibrary_cover || ''}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'">
+                                </div>
+                                <div class="card-body p-2">
+                                    <p class="small fw-bold text-white mb-1" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(b.title)}</p>
+                                    <p class="text-muted small mb-0" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(b.author)}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            if (bookData) {
+                const avgText = document.getElementById('avgRatingText');
+                if (bookData.avg_rating && bookData.avg_rating > 0) {
+                    avgText.textContent = '平均 ' + bookData.avg_rating + ' 分';
+                } else {
+                    avgText.textContent = '暂无评分';
+                }
+                if (bookData.user_rating) {
+                    updateRatingStars(bookData.user_rating);
+                }
+            }
         })();
     </script>
     <script src="js/live2d-widget.js"></script>

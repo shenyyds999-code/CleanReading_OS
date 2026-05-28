@@ -68,9 +68,25 @@ class Book(db.Model):
     comments = db.relationship('Comment', backref='book', lazy='dynamic')
     quiz_questions = db.relationship('QuizQuestion', backref='book', lazy='dynamic')
     quiz_attempts = db.relationship('QuizAttempt', backref='book', lazy='dynamic')
+    ratings = db.relationship('BookRating', backref='book', lazy='dynamic', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Book {self.title}>'
+
+
+class BookRating(db.Model):
+    __tablename__ = 'book_ratings'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False, index=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False, index=True)
+    rating = db.Column(db.SmallInteger, nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (db.UniqueConstraint('user_id', 'book_id'),)
+
+    def __repr__(self):
+        return f'<BookRating user={self.user_id} book={self.book_id} rating={self.rating}>'
 
 
 class BorrowRecord(db.Model):

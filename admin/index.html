@@ -240,7 +240,7 @@
                         <div class="col-md-4"><label class="form-label">出版社</label><input type="text" class="form-control" id="bookPublisher"></div>
                         <div class="col-md-4"><label class="form-label">总册数</label><input type="number" class="form-control" id="bookTotalCopies" value="1" min="1"></div>
                         <div class="col-md-4"><label class="form-label">位置</label><input type="text" class="form-control" id="bookLocation"></div>
-                        <div class="col-md-4"><label class="form-label">封面URL</label><div class="input-group"><input type="text" class="form-control" id="bookCoverUrl"><button class="btn btn-outline-warning" type="button" id="searchCoverBtn" title="从豆瓣搜索封面"><i class="bi bi-image"></i> 搜寻封面</button></div></div>
+                        <div class="col-md-4"><label class="form-label">封面URL</label><div class="input-group"><input type="text" class="form-control" id="bookCoverUrl"><button class="btn btn-outline-warning" type="button" id="uploadCoverBtn" title="上传封面图片"><i class="bi bi-upload"></i> 上传封面</button></div></div><input type="file" id="coverFileInput" accept="image/*" style="display:none;">
                         <div class="col-12"><label class="form-label">简介</label><textarea class="form-control" id="bookDesc" rows="3"></textarea></div>
                     </div>
                 </form>
@@ -405,25 +405,46 @@
         showToast('已自动填充：' + d.title + ' / ' + d.author, 'success');
     });
 
-    document.getElementById('searchCoverBtn').addEventListener('click', async function () {
-        const isbn = document.getElementById('bookIsbn').value.trim();
-        if (!isbn) { showToast('请先输入ISBN', 'error'); return; }
-        this.disabled = true;
-        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>搜索中';
-        const r = await adminGet('/books/cover-search?isbn=' + encodeURIComponent(isbn));
-        this.disabled = false;
-        this.innerHTML = '<i class="bi bi-image"></i> 搜寻封面';
-        if (!r || r.code !== 200) { showToast(r.message || '搜索失败', 'error'); return; }
-        const urls = r.data.urls;
-        if (!urls.length) { showToast('未找到封面', 'error'); return; }
-        let html = '<div class="row g-2">';
-        urls.forEach(function(url, i) {
-            html += '<div class="col-6"><img src="' + url + '" style="width:100%;border-radius:8px;cursor:pointer;" onclick="selectCover(' + i + ',\'' + url + '\')" onerror="this.style.display=\'none\'"></div>';
-        });
-        html += '</div>';
-        document.getElementById('coverSearchPreview').innerHTML = html;
-        window._coverUrls = urls;
-        new bootstrap.Modal(document.getElementById('coverSelectModal')).show();
+    document.getElementById('uploadCoverBtn').addEventListener('click', function () {
+        document.getElementById('coverFileInput').click();
+    });
+
+    document.getElementById('coverFileInput').addEventListener('change', async function (e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            showToast('请选择图片文件', 'error');
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('图片大小不能超过5MB', 'error');
+            return;
+        }
+        const btn = document.getElementById('uploadCoverBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>上传中';
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const r = await fetch(API_BASE + '/admin/upload-image', {
+                method: 'POST',
+                headers: { 'Authorization': 'Bearer ' + getToken() },
+                body: formData
+            }).then(res => res.json());
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-upload"></i> 上传封面';
+            if (r.code === 200) {
+                document.getElementById('bookCoverUrl').value = r.data.url;
+                showToast('封面上传成功', 'success');
+            } else {
+                showToast(r.message || '上传失败', 'error');
+            }
+        } catch (err) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-upload"></i> 上传封面';
+            showToast('上传失败', 'error');
+        }
+        e.target.value = '';
     });
 
     function editBook(id) {
@@ -619,7 +640,7 @@
         const r = await adminGet('/admin/users?page=' + page + '&q=' + encodeURIComponent(q));
         if (!r) return;
         document.getElementById('userTableBody').innerHTML = r.data.items.map(u =>
-            '<tr><td>' + u.id + '</td><td><strong>' + escapeHtml(u.username) + '</strong></td><td>' + getRoleName(u.role) + '</td><td>' + u.credit_score + '</td><td>' + u.borrowing_count + '</td><td><small>' + u.created_at + '</small></td><td><button class="btn btn-outline-primary btn-sm adjust-credit" data-id="' + u.id + '" data-username="' + escapeHtml(u.username) + '" data-score="' + u.credit_score + '"><i class="bi bi-coin"></i> 信誉分</button></td></tr>'
+            '<tr><td>' + u.id + '</td><td><strong>' + escapeHtml(u.username) + '</strong></td><td>' + getRoleName(u.role) + '</td><td>' + u.credit_score + '</td><td>' + u.borrowing_count + '</td><td><small>' + u.created_at + '</small></td><td><button class="btn btn-outline-primary btn-sm me-1 adjust-credit" data-id="' + u.id + '" data-username="' + escapeHtml(u.username) + '" data-score="' + u.credit_score + '"><i class="bi bi-coin"></i></button><button class="btn btn-outline-danger btn-sm del-user" data-id="' + u.id + '" data-username="' + escapeHtml(u.username) + '"><i class="bi bi-trash"></i></button></td></tr>'
         ).join('') || '<tr><td colspan="7" class="text-center text-muted">暂无数据</td></tr>';
         renderPagination('userPagination', r.data.total, r.data.page, r.data.per_page, loadUsers);
 
@@ -631,6 +652,18 @@
                 document.getElementById('creditReason').value = '';
                 document.getElementById('creditDetail').value = '';
                 new bootstrap.Modal(document.getElementById('creditModal')).show();
+            });
+        });
+
+        document.querySelectorAll('.del-user').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const uid = parseInt(this.dataset.id);
+                const username = this.dataset.username;
+                if (!confirm('确定删除用户「' + username + '」？该操作不可撤销，将删除该用户的所有借阅记录和评论。')) return;
+                const r = await adminDelete('/admin/users/' + uid);
+                if (!r) return;
+                if (r.code === 200) { showToast('用户已删除', 'success'); loadUsers(); }
+                else { showToast(r.message, 'error'); }
             });
         });
     }
@@ -674,49 +707,6 @@
 
     switchPanel('dashboard');
 })();
-
-function selectCover(index, url) {
-    const bookId = window._editBookId || null;
-    const btn = document.getElementById('searchCoverBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>下载中';
-    fetch(API_BASE + '/books/cover-download', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
-        body: JSON.stringify({ url: url, book_id: bookId })
-    }).then(r => r.json()).then(r => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-image"></i> 搜寻封面';
-        bootstrap.Modal.getInstance(document.getElementById('coverSelectModal')).hide();
-        if (r.code === 200) {
-            if (r.data.image_url) {
-                document.getElementById('bookCoverUrl').value = r.data.image_url;
-                showToast('封面已下载并保存', 'success');
-            } else if (r.data.image_data) {
-                document.getElementById('bookCoverUrl').value = r.data.image_data;
-                showToast('封面已选择（保存书籍后将自动上传）', 'success');
-            }
-        } else {
-            showToast(r.message || '下载失败', 'error');
-        }
-    }).catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-image"></i> 搜寻封面';
-        showToast('下载失败', 'error');
-    });
-}
     </script>
-
-    <div class="modal fade" id="coverSelectModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title">选择封面</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <p class="text-muted small mb-3">点击选择要下载的封面：</p>
-                    <div id="coverSearchPreview"></div>
-                </div>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

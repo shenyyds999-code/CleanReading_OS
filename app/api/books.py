@@ -93,17 +93,43 @@ def cover_download(current_user):
 @books_bp.route('/<int:book_id>', methods=['GET'])
 @kiosk_blocked
 def get_book(book_id):
+    user, _ = _verify_token()
+    user_id = user.id if user else None
+
     cache_key = CacheKey.BOOK(book_id)
     cached = cache_get(cache_key)
     if cached:
+        if user_id:
+            _, user_rating = book_service.get_book_rating(book_id, user_id)
+            cached['user_rating'] = user_rating
         return success(cached)
 
-    result = book_service.get_book(book_id)
+    result = book_service.get_book(book_id, user_id)
     if not result:
         return error(404, '图书不存在')
 
     cache_set(cache_key, result, current_app_ttl('CACHE_BOOK_LIST_TTL'))
     return success(result)
+
+
+@books_bp.route('/<int:book_id>/rating', methods=['POST'])
+@login_required
+def rate_book(current_user):
+    data = request.get_json()
+    rating = data.get('rating')
+    if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+        return error(400, '评分必须是1-5之间的整数')
+    result, err = book_service.rate_book(current_user.id, book_id, rating)
+    if err:
+        return error(400, err)
+    return success(result)
+
+
+@books_bp.route('/<int:book_id>/recommendations', methods=['GET'])
+@kiosk_blocked
+def book_recommendations(book_id):
+    result = book_service.get_random_books(exclude_ids=[book_id], limit=4)
+    return success({'items': result})
 
 
 def current_app_ttl(name):
