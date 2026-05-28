@@ -114,7 +114,7 @@ def get_book(book_id):
 
 @books_bp.route('/<int:book_id>/rating', methods=['POST'])
 @login_required
-def rate_book(current_user):
+def rate_book(current_user, book_id):
     data = request.get_json()
     rating = data.get('rating')
     if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
