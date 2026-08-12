@@ -1,0 +1,52 @@
+{
+  "name": "webview-builder",
+  "version": "0.1.0",
+  "description": "WebView 程序生成器 — 输入服务器地址，一键生成 Windows exe / Android apk 安装包",
+  "main": "src/main.js",
+  "author": "sanchaomingfang",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "builder": "node src/cli.js"
+  },
+  "keywords": [
+    "webview",
+    "builder",
+    "electron",
+    "capacitor",
+    "apk",
+    "exe",
+    "open-source"
+  ],
+  "build": {
+    "appId": "com.sanchaomingfang.webviewbuilder",
+    "productName": "WebView生成器",
+    "files": [
+      "src/**/*",
+      "templates/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "build"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Development"
+    }
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/android": "^6.0.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3",
+    "@capacitor/cli": "^6.0.0"
+  }
+}
