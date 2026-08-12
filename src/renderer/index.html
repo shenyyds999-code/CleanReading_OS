@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebView 程序生成器</title>
+  <style>
+    :root { --accent:#FF6699; --accent-hover:#ff4d88; --bg:#1e2125; --card:#24272a; --border:#3a3f44; --text:#e0e0e0; --muted:#999; }
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: "Microsoft YaHei", system-ui, sans-serif; background:var(--bg); color:var(--text); padding:24px; }
+    h1 { font-size:20px; color:var(--accent); margin-bottom:4px; }
+    .sub { color:var(--muted); font-size:13px; margin-bottom:20px; }
+    label { display:block; font-size:13px; color:var(--muted); margin:14px 0 6px; }
+    input[type=text], select { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#2a2e33; color:var(--text); font-size:14px; }
+    input:focus { outline:none; border-color:var(--accent); }
+    .row { display:flex; gap:12px; flex-wrap:wrap; }
+    .row > div { flex:1; min-width:140px; }
+    .checks { display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; }
+    .checks label { display:flex; align-items:center; gap:6px; margin:0; font-size:14px; color:var(--text); cursor:pointer; }
+    .checks input { width:16px; height:16px; accent-color:var(--accent); }
+    button { margin-top:20px; width:100%; padding:13px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-size:16px; font-weight:700; cursor:pointer; }
+    button:hover { background:var(--accent-hover); }
+    button:disabled { background:#555; cursor:not-allowed; }
+    #log { margin-top:18px; background:#16181b; border:1px solid var(--border); border-radius:8px; padding:12px; height:170px; overflow-y:auto; font-family:Consolas,monospace; font-size:12px; white-space:pre-wrap; color:#9aa;}
+    #log .ok { color:#4ade80; }
+    #log .err { color:#f87171; }
+    .env-row { margin-top:8px; display:flex; gap:10px; align-items:center; font-size:12px; color:var(--muted); flex-wrap:wrap;}
+    .env-badge { padding:2px 8px; border-radius:10px; font-size:11px;}
+    .env-badge.ok { background:#1a3a2a; color:#4ade80; }
+    .env-badge.missing { background:#3a1a1a; color:#f87171; }
+  </style>
+</head>
+<body>
+  <h1>🚀 WebView 程序生成器</h1>
+  <div class="sub">输入服务器地址，一键生成 Windows exe / Android apk 安装包</div>
+
+  <label>服务器地址 *</label>
+  <input type="text" id="url" placeholder="https://books.example.com" />
+
+  <label>应用名称 *</label>
+  <input type="text" id="name" placeholder="校园图书馆" />
+
+  <div class="row">
+    <div>
+      <label>输出目录</label>
+      <input type="text" id="out" value="./dist" />
+    </div>
+  </div>
+
+  <div class="checks">
+    <label><input type="checkbox" id="desktop" checked /> 桌面端 (.exe)</label>
+    <label><input type="checkbox" id="android" checked /> 安卓端 (.apk)</label>
+  </div>
+  <div class="checks" id="androidOpts">
+    <label><input type="checkbox" id="kiosk" checked /> 借书机模式（全屏/禁软键盘/防休眠）</label>
+    <label><input type="checkbox" id="fullscreen" /> 桌面端全屏</label>
+  </div>
+
+  <div class="env-row" id="env"></div>
+
+  <button id="go">🚀 一键生成安装包</button>
+
+  <div id="log" placeholder="生成日志将显示在这里...">生成日志将显示在这里...</div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const logBox = $('log');
+
+    function logLine(text, cls) {
+      const line = document.createElement('div');
+      line.textContent = text;
+      if (cls) line.className = cls;
+      logBox.appendChild(line);
+      logBox.scrollTop = logBox.scrollHeight;
+    }
+
+    async function refreshEnv() {
+      const env = $('env');
+      const wantAndroid = $('android').checked;
+      const res = await window.api.checkEnv(wantAndroid);
+      env.innerHTML = '';
+      for (const r of res) {
+        const s = document.createElement('span');
+        s.className = 'env-badge ' + (r.ok ? 'ok' : 'missing');
+        s.textContent = (r.ok ? '✓ ' : '✗ ') + r.name;
+        env.appendChild(s);
+      }
+    }
+
+    $('go').addEventListener('click', async () => {
+      const btn = $('go');
+      btn.disabled = true;
+      logBox.innerHTML = '';
+      logLine('开始生成...');
+      const res = await window.api.build({
+        serverUrl: $('url').value,
+        appName: $('name').value,
+        wantDesktop: $('desktop').checked,
+        wantAndroid: $('android').checked,
+        kiosk: $('kiosk').checked,
+        fullscreen: $('fullscreen').checked,
+        outDir: $('out').value,
+      });
+      for (const l of res.logs) logLine(l, l.includes('❌') ? 'err' : (l.includes('✅') || l.includes('生成完成')) ? 'ok' : '');
+      if (res.ok) {
+        logLine('');
+        logLine('✅ 生成完成！');
+        logLine('产物目录: ' + JSON.stringify(res.results));
+      } else {
+        logLine('❌ 生成失败: ' + res.error, 'err');
+      }
+      btn.disabled = false;
+    });
+
+    $('android').addEventListener('change', refreshEnv);
+    refreshEnv();
+  </script>
+</body>
+</html>
