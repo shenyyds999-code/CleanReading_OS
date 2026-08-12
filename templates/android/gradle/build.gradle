@@ -1,0 +1,4 @@
+// 根 build.gradle — 由 WebView 生成器生成
+plugins {
+    id 'com.android.application' version '8.5.2' apply false
+}
