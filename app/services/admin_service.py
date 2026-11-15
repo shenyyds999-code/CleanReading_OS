@@ -1,5 +1,8 @@
-from app.models import User, Book, BorrowRecord, Comment, Donation, ImageReview, CreditLog, Notification
+from app.models import (User, Book, BorrowRecord, Comment, Donation, ImageReview, CreditLog,
+                        Notification, BookRating, CommentLike, QuizAttempt, QuizQuestion,
+                        UserTitle, UserSetting)
 from app import db
+from app.utils.cache import cache_delete_prefix, CacheKey
 from datetime import datetime, timezone
 from sqlalchemy import func
 
@@ -69,6 +72,7 @@ def create_book(data):
 
     db.session.add(book)
     db.session.commit()
+    cache_delete_prefix(CacheKey.make('book'))
     return _book_dict(book), None, None
 
 
@@ -111,6 +115,7 @@ def update_book(book_id, data):
 
     book.updated_at = datetime.now(timezone.utc)
     db.session.commit()
+    cache_delete_prefix(CacheKey.make('book'))
     return _book_dict(book), None, None
 
 
@@ -123,11 +128,27 @@ def delete_book(book_id):
     if active_borrows > 0:
         return None, f'该图书尚有 {active_borrows} 条在借记录，无法删除', 400
 
+    comment_ids = [c.id for c in Comment.query.filter_by(book_id=book_id).all()]
+    _delete_comments(comment_ids)
+
     BorrowRecord.query.filter_by(book_id=book_id).delete()
-    Comment.query.filter_by(book_id=book_id).delete()
+    BookRating.query.filter_by(book_id=book_id).delete()
+    QuizAttempt.query.filter_by(book_id=book_id).delete()
+    QuizQuestion.query.filter_by(book_id=book_id).delete()
     db.session.delete(book)
     db.session.commit()
+    cache_delete_prefix(CacheKey.make('book'))
     return {'deleted': book_id}, None, None
+
+
+def _delete_comments(comment_ids):
+    """删除评论及其回复、点赞，先删子评论再删主评论，避免自引用外键报错。"""
+    if not comment_ids:
+        return
+    child_ids = [c.id for c in Comment.query.filter(Comment.parent_id.in_(comment_ids)).all()]
+    _delete_comments(child_ids)
+    CommentLike.query.filter(CommentLike.comment_id.in_(comment_ids)).delete(synchronize_session=False)
+    Comment.query.filter(Comment.id.in_(comment_ids)).delete(synchronize_session=False)
 
 
 def list_users(page=1, per_page=20, search=''):
@@ -380,13 +401,34 @@ def delete_user(user_id):
     if user.role == 3:
         return None, '不能删除超级管理员', 400
 
+    # 归还该用户未还图书的库存
+    active_records = BorrowRecord.query.filter_by(user_id=user_id, status='借阅中').all()
+    for record in active_records:
+        book = db.session.get(Book, record.book_id)
+        if book and book.available_copies < book.total_copies:
+            book.available_copies += 1
+
+    comment_ids = [c.id for c in Comment.query.filter_by(user_id=user_id).all()]
+    _delete_comments(comment_ids)
+
+    CommentLike.query.filter_by(user_id=user_id).delete()
     BorrowRecord.query.filter_by(user_id=user_id).delete()
-    Comment.query.filter_by(user_id=user_id).delete()
     CreditLog.query.filter_by(user_id=user_id).delete()
     Notification.query.filter_by(user_id=user_id).delete()
+    BookRating.query.filter_by(user_id=user_id).delete()
+    QuizAttempt.query.filter_by(user_id=user_id).delete()
+    UserTitle.query.filter_by(user_id=user_id).delete()
+    UserSetting.query.filter_by(user_id=user_id).delete()
+    Donation.query.filter_by(user_id=user_id).delete()
+    Donation.query.filter_by(created_by_admin=user_id).update({'created_by_admin': None}, synchronize_session=False)
+    ImageReview.query.filter((ImageReview.user_id == user_id) | (ImageReview.reviewer_id == user_id)).delete(
+        synchronize_session=False)
+    # 题目创建者置空，保留题目本身
+    QuizQuestion.query.filter_by(created_by=user_id).update({'created_by': None}, synchronize_session=False)
 
     db.session.delete(user)
     db.session.commit()
+    cache_delete_prefix(CacheKey.make('book'))
     return {'deleted': user_id}, None, None
 
 

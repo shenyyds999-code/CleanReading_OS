@@ -18,9 +18,9 @@ def register():
 
     username = data.get('username', '')
     password = data.get('password', '')
-    role = data.get('role', 1)
 
-    user, err = auth_service.register_user(username, password, role)
+    # 注册接口不允许指定角色，避免越权注册为管理员
+    user, err = auth_service.register_user(username, password)
     if err:
         return error(400, err)
 

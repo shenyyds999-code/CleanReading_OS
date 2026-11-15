@@ -114,7 +114,7 @@ def admin_list_questions(current_user):
 @learn_bp.route('/admin/questions/<int:question_id>', methods=['DELETE'])
 @admin_required
 def delete_question(current_user, question_id):
-    success, msg = quiz_service.delete_question(question_id)
-    if success:
+    ok, msg = quiz_service.delete_question(question_id)
+    if ok:
         return success(None, '题目已删除')
     return error(400, msg)

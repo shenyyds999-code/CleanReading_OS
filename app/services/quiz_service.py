@@ -11,7 +11,7 @@ def get_questions(book_id, limit=5):
     if len(questions) > limit:
         questions = random.sample(questions, limit)
 
-    return [_question_dict(q) for q in questions]
+    return [_public_question_dict(q) for q in questions]
 
 
 def submit_attempt(user, book_id, answers):
@@ -31,7 +31,7 @@ def submit_attempt(user, book_id, answers):
         if not question:
             continue
         correct = question.correct_answer_text.strip()
-        is_correct = _check_answer(user_answer, correct, question.type)
+        is_correct = _check_answer(user_answer, correct, question.type, question.options)
         score = question.score if is_correct else 0
         total_score += question.score
         earned_score += score
@@ -93,13 +93,31 @@ def create_question(book_id, qtype, question_text, options, correct_answer_text,
     return _question_dict(question)
 
 
-def _check_answer(user_answer, correct, qtype):
+def _check_answer(user_answer, correct, qtype, options=None):
+    user_answer = (user_answer or '').strip()
+    correct = (correct or '').strip()
     if qtype == 1:
+        # 兼容两种答案配置：选项文本，或选项字母（A/B/C/D）
+        if correct.upper() in ('A', 'B', 'C', 'D') and options:
+            idx = ord(correct.upper()) - ord('A')
+            if 0 <= idx < len(options):
+                return user_answer == str(options[idx]).strip()
         return user_answer.upper() == correct.upper()
     elif qtype == 2:
-        return user_answer.strip() == correct.strip()
+        return user_answer == correct
     else:
         return len(user_answer) >= 3 and (correct.lower() in user_answer.lower() or user_answer.lower() in correct.lower())
+
+
+def _public_question_dict(q):
+    return {
+        'id': q.id,
+        'book_id': q.book_id,
+        'type': q.type,
+        'question_text': q.question_text,
+        'options': q.options,
+        'score': q.score
+    }
 
 
 def _question_dict(q):

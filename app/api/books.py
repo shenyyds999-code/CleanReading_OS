@@ -3,7 +3,7 @@ from app.services import book_service
 from app.utils.response import success, error, paginated
 from app.utils.jwt_helper import login_required, _verify_token
 from app.utils.kiosk import kiosk_blocked
-from app.utils.cache import cache_get, cache_set, cache_delete, CacheKey
+from app.utils.cache import cache_get, cache_set, cache_delete, cache_delete_prefix, CacheKey
 from app import db
 from app.models import Book
 import base64
@@ -31,7 +31,7 @@ def search_books():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
 
-    cache_key = CacheKey.BOOK_LIST(q, page)
+    cache_key = CacheKey.BOOK_LIST(q, page, search_type, per_page)
     cached = cache_get(cache_key)
     if cached:
         return paginated(**cached)
@@ -99,16 +99,19 @@ def get_book(book_id):
     cache_key = CacheKey.BOOK(book_id)
     cached = cache_get(cache_key)
     if cached:
-        if user_id:
-            _, user_rating = book_service.get_book_rating(book_id, user_id)
-            cached['user_rating'] = user_rating
-        return success(cached)
+        result = dict(cached)
+        _, user_rating = book_service.get_book_rating(book_id, user_id)
+        result['user_rating'] = user_rating
+        return success(result)
 
     result = book_service.get_book(book_id, user_id)
     if not result:
         return error(404, '图书不存在')
 
-    cache_set(cache_key, result, current_app_ttl('CACHE_BOOK_LIST_TTL'))
+    # 缓存公共数据，用户评分按请求者实时计算，避免串号
+    cache_payload = dict(result)
+    cache_payload['user_rating'] = None
+    cache_set(cache_key, cache_payload, current_app_ttl('CACHE_BOOK_LIST_TTL'))
     return success(result)
 
 
@@ -122,6 +125,7 @@ def rate_book(current_user, book_id):
     result, err = book_service.rate_book(current_user.id, book_id, rating)
     if err:
         return error(400, err)
+    cache_delete_prefix(CacheKey.make('book'))
     return success(result)
 
 

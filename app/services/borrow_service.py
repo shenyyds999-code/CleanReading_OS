@@ -1,5 +1,6 @@
 from app.models import User, Book, BorrowRecord, CreditLog, Notification
 from app import db
+from app.utils.cache import cache_delete_prefix, CacheKey
 from datetime import datetime, timezone, timedelta
 
 
@@ -66,6 +67,7 @@ def borrow_book(user, book):
 
     db.session.add(record)
     db.session.commit()
+    cache_delete_prefix(CacheKey.make('book'))
 
     return {
         'record_id': record.id,
@@ -74,7 +76,7 @@ def borrow_book(user, book):
         'borrow_date': record.borrow_date.strftime('%Y-%m-%d %H:%M:%S'),
         'due_date': record.due_date.strftime('%Y-%m-%d %H:%M:%S'),
         'borrow_days': limit['days'],
-        'remaining_quota': limit['max_books'] - 1 - BorrowRecord.query.filter_by(
+        'remaining_quota': max(limit['max_books'] - BorrowRecord.query.filter_by(
             user_id=user.id, status='借阅中'
-        ).count()
+        ).count(), 0)
     }, None, None

@@ -136,7 +136,8 @@ class CacheKey:
     USER = staticmethod(lambda uid: CacheKey.make('user', str(uid)))
     USER_TOKEN_BLACKLIST = staticmethod(lambda jti: CacheKey.make('jwt', 'blacklist', jti))
     BOOK = staticmethod(lambda bid: CacheKey.make('book', str(bid)))
-    BOOK_LIST = staticmethod(lambda q, page: CacheKey.make('books', 'list', q or '_', str(page)))
+    BOOK_LIST = staticmethod(lambda q, page, search_type='fuzzy', per_page=20: CacheKey.make(
+        'books', 'list', q or '_', str(page), search_type, str(per_page)))
     RATE_LIMIT = staticmethod(lambda key, window: CacheKey.make('rate', key, str(window)))
 
 
@@ -145,7 +146,14 @@ def cache_get(key, default=None):
     try:
         if isinstance(cache, SimpleCache):
             return cache.get(key)
-        return cache.get(key) or default
+        raw = cache.get(key)
+        if raw is None:
+            return default
+        # Redis 中统一以 JSON 字符串存储
+        try:
+            return json.loads(raw)
+        except (TypeError, ValueError):
+            return raw
     except Exception:
         return default
 
@@ -158,7 +166,21 @@ def cache_set(key, value, ttl=None):
         if isinstance(cache, SimpleCache):
             cache.set(key, value, ttl)
         else:
-            cache.setex(key, ttl, value)
+            cache.setex(key, ttl, json.dumps(value, ensure_ascii=False, default=str))
+    except Exception:
+        pass
+
+
+def cache_delete_prefix(prefix):
+    """按前缀批量清理缓存，用于图书库存、评分等联动失效。"""
+    cache = get_cache()
+    try:
+        if isinstance(cache, SimpleCache):
+            for key in cache.keys(prefix):
+                cache.delete(key)
+        else:
+            for key in cache.scan_iter(match=f'{prefix}*'):
+                cache.delete(key)
     except Exception:
         pass
 

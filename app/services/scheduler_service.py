@@ -19,9 +19,11 @@ def check_overdue_and_penalize():
 
         expected_deductions = weeks_overdue
 
+        # 只统计当前这本超期图书的扣分记录，避免多本超期图书互相抵消
         credit_logs = CreditLog.query.filter(
             CreditLog.user_id == record.user_id,
             CreditLog.reason == '超期扣分',
+            CreditLog.detail.like(f'图书《{record.book.title}》超期%'),
             CreditLog.created_at >= record.due_date
         ).count()
 

@@ -7,7 +7,7 @@ from app.services import return_service
 from app.utils.response import success, error, paginated
 from app.utils.jwt_helper import login_required, admin_required
 from app.utils.kiosk import kiosk_blocked
-from app.utils.cache import cache_delete, CacheKey
+from app.utils.cache import cache_delete, cache_delete_prefix, CacheKey
 from datetime import datetime, timezone
 
 return_bp = Blueprint('return', __name__)
@@ -133,7 +133,7 @@ def confirm_return(current_user):
     db.session.add(notification)
 
     db.session.commit()
-    cache_delete(CacheKey.BOOK(book.id) if book else None)
+    cache_delete_prefix(CacheKey.make('book'))
     return success({'record_id': record.id, 'status': record.status, 'damage_level': damage_level}, '还书确认完成')
 
 

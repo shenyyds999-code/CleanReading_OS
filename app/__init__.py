@@ -8,6 +8,7 @@ from config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()
+_scheduler = None
 
 
 def create_app(config_class=Config):
@@ -54,15 +55,18 @@ def create_app(config_class=Config):
     app.register_blueprint(system_bp, url_prefix='/api/system')
 
     from apscheduler.schedulers.background import BackgroundScheduler
-    scheduler = BackgroundScheduler(daemon=True)
-    scheduler.add_job(
-        func=_overdue_job,
-        trigger='interval',
-        hours=1,
-        id='overdue_check',
-        replace_existing=True
-    )
-    scheduler.start()
+    global _scheduler
+    if _scheduler is None:
+        _scheduler = BackgroundScheduler(daemon=True)
+        _scheduler.add_job(
+            func=_overdue_job,
+            trigger='interval',
+            hours=1,
+            id='overdue_check',
+            replace_existing=True,
+            args=[app]
+        )
+        _scheduler.start()
 
     @app.route('/api/health')
     def health_check():
@@ -210,11 +214,9 @@ def create_app(config_class=Config):
     return app
 
 
-def _overdue_job():
-    from app import create_app
-    app = create_app()
+def _overdue_job(app):
     with app.app_context():
         from app.services.scheduler_service import check_overdue_and_penalize
         count = check_overdue_and_penalize()
         if count:
-            print(f'[Scheduler] 超期扣分完成，共处理 {count} 条记录')
+            app.logger.info('超期扣分完成，共处理 %s 条记录', count)
