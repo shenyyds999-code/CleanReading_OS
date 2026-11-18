@@ -106,7 +106,7 @@ function checkAuthAndRedirect() {
 (function () {
     try {
         var cached = localStorage.getItem('accent_color');
-        if (cached && /^#[0-9a-fA-F]{6}$/.test(cached)) {
+        if (cached && /^#[0-9a-fA-F]{6}$/.test(cached) && cached.toLowerCase() !== '#ff6699') {
             var r = parseInt(cached.slice(1, 3), 16);
             var g = parseInt(cached.slice(3, 5), 16);
             var b = parseInt(cached.slice(5, 7), 16);

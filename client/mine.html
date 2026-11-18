@@ -7,40 +7,46 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; }
+        body { background: linear-gradient(rgba(250,251,254,0.9), rgba(250,251,254,0.9)), url('img/bg.png') center/cover fixed no-repeat; min-height: 100vh; color: #1b1622; }
         .navbar-brand { font-weight: 700; color: var(--accent) !important; }
         .navbar-brand i.bi-book { color: var(--accent); }
-        .navbar { background: #24272a !important; border-bottom: 1px solid #4a5056; }
+        .navbar { background: #ffffff !important; border-bottom: 1px solid #dfe2ea; }
+        .navbar .nav-link { color: #5f5a66; }
+        .navbar .nav-link.active { color: var(--accent); font-weight: 600; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
-        .return-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; }
-        .preview-remove { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: #dc3545; color: #fff; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; }
-        .table { color: #e0e0e0; background: #363b3f; border-radius: 8px; overflow: hidden; }
-        .table th { background: #24272a; color: #bbb; border-color: #4a5056; }
-        .table td { background: #363b3f; color: #e0e0e0; border-color: #4a5056; }
-        .table-hover tbody tr:hover { background: #3e4347; }
-        h4 { color: #e0e0e0; }
-        .text-muted { color: #888 !important; }
+        .return-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 0; cursor: pointer; }
+        .preview-remove { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 0; background: #dc3545; color: #fff; font-size: 12px; line-height: 20px; text-align: center; cursor: pointer; }
+        .table { color: #1b1622; background: #ffffff; border-radius: 0; overflow: hidden; }
+        .table th { background: #f7f8fb; color: #5f5a66; border-color: #e6e8ef; }
+        .table td { background: #ffffff; color: #1b1622; border-color: #e6e8ef; }
+        .table-hover tbody tr:hover { background: #f4f5fa; }
+        h4 { color: #1b1622; }
+        .text-muted { color: #6c757d !important; }
         .btn-primary { background: var(--accent); border-color: var(--accent); }
         .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-        .btn-outline-warning { color: #f0a040; border-color: #f0a040; }
-        .btn-outline-warning:hover { background: #f0a040; color: #2E3134; }
-        .form-control { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .form-control:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; }
-        .form-control::file-selector-button { background: #FF6699; border-color: #FF6699; color: #fff; border-radius: 4px; padding: 0.375rem 0.75rem; cursor: pointer; }
-        .form-control::file-selector-button:hover { background: #e65588; border-color: #e65588; }
-        .modal-content { background: #363b3f; border-color: #4a5056; color: #e0e0e0; }
-        .modal-header, .modal-footer { border-color: #4a5056; }
-        .badge.bg-success { background: #1a3a2a !important; color: #4ade80; }
-        .badge.bg-primary { background: #1a2a3a !important; color: #7eb8ff; }
-        .badge.bg-warning { background: #3a3010 !important; color: #f0a040; }
-        .badge.bg-danger { background: #3a1a1a !important; color: #f87171; }
+        .btn-outline-warning { color: #a16207; border-color: #d9a441; }
+        .btn-outline-warning:hover { background: #a16207; border-color: #a16207; color: #fff; }
+        .form-control { background: #ffffff; border-color: #d5d9e3; color: #1b1622; }
+        .form-control:focus { background: #ffffff; border-color: var(--accent); color: #1b1622; }
+        .form-control::file-selector-button { background: var(--accent); border-color: var(--accent); color: #fff; border-radius: 0; padding: 0.375rem 0.75rem; cursor: pointer; }
+        .form-control::file-selector-button:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .modal-content { background: #ffffff; border-color: #dfe2ea; color: #1b1622; }
+        .modal-header, .modal-footer { border-color: #dfe2ea; }
+        .badge.bg-success { background: #e5f4ea !important; color: #1f7a45; }
+        .badge.bg-primary { background: #f3e9e9 !important; color: var(--accent); }
+        .badge.bg-warning { background: #fdf3e2 !important; color: #a16207; }
+        .badge.bg-danger { background: #fdeaea !important; color: #b91c1c; }
+    
+        /* Cathay-style square corners */
+        .form-control, .form-select, .input-group-text, .btn, .card, .modal-content, .modal-header, .modal-footer, .dropdown-menu, .badge, .alert, .toast, .nav-pills .nav-link, .pagination .page-link, .list-group-item, .navbar-toggler, .form-check-input, .rounded, .rounded-1, .rounded-2, .rounded-3, .rounded-circle, .rounded-pill { border-radius: 0 !important; }
+        .navbar { box-shadow: none !important; }
     </style>
 </head>
 <body>
     <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="index.html"><i class="bi bi-book me-2"></i><span class="site-name">校园图书馆</span></a>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -49,13 +55,13 @@
                     <li class="nav-item"><a class="nav-link active" href="mine.html"><i class="bi bi-person"></i> 我的借阅</a></li>
                 </ul>
                 <div class="d-flex align-items-center gap-3">
-                    <a class="text-white position-relative" href="notifications.html" id="notifyBell" title="通知">
+                    <a class="text-body position-relative" href="notifications.html" id="notifyBell" title="通知">
                         <i class="bi bi-bell fs-5"></i>
                         <span id="notifyBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none" style="font-size:0.6rem;"></span>
                     </a>
-                    <a class="text-white" href="settings.html" title="设置"><i class="bi bi-gear fs-5"></i></a>
+                    <a class="text-body" href="settings.html" title="设置"><i class="bi bi-gear fs-5"></i></a>
                     <span id="creditDisplay" class="badge credit-badge"></span>
-                    <span id="userDisplay" class="text-white"></span>
+                    <span id="userDisplay" class="text-body"></span>
                 </div>
             </div>
         </div>
@@ -77,8 +83,8 @@
 
             <div id="recordList" class="d-none">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle shadow-sm rounded" style="background:#363b3f;">
-                        <thead style="background:#24272a;color:#bbb;">
+                    <table class="table table-hover align-middle shadow-sm rounded" style="background:#ffffff;">
+                        <thead style="background:#f7f8fb;color:#5f5a66;">
                             <tr>
                                 <th>图书</th>
                                 <th>借阅日期</th>
@@ -108,14 +114,14 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn" id="submitReturnBtn" disabled style="background:#FF6699;border-color:#FF6699;color:#fff;">提交</button>
+                    <button type="button" class="btn" id="submitReturnBtn" disabled style="background:var(--accent);border-color:var(--accent);color:#fff;">提交</button>
                 </div>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/app.js?v=044"></script>
+    <script src="js/app.js?v=046"></script>
     <script>
         (async function () {
             const user = await checkAuthAndRedirect();

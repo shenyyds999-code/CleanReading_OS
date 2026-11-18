@@ -7,42 +7,47 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; }
+        body { background: linear-gradient(rgba(250,251,254,0.9), rgba(250,251,254,0.9)), url('img/bg.png') center/cover fixed no-repeat; min-height: 100vh; color: #1b1622; }
         .navbar-brand { font-weight: 700; color: var(--accent) !important; }
         .navbar-brand i.bi-book { color: var(--accent); }
-        .navbar { background: #24272a !important; border-bottom: 1px solid #4a5056; }
+        .navbar { background: #ffffff !important; border-bottom: 1px solid #dfe2ea; }
+        .navbar .nav-link { color: #5f5a66; }
         .credit-badge { font-size: 0.85rem; }
         .main-content { padding-top: 80px; padding-bottom: 40px; }
-        .color-pick { width: 40px; height: 40px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; transition: all .15s; }
-        .color-pick.active { border-color: #fff; transform: scale(1.1); }
-        .card { background: #363b3f; border-color: #4a5056; }
-        .card-body { color: #e0e0e0; }
-        h4, h6 { color: #e0e0e0; }
-        .text-muted { color: #888 !important; }
-        .form-control { background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .form-control:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; }
-        .form-control::file-selector-button { background: #FF6699; border-color: #FF6699; color: #fff; border-radius: 4px; padding: 0.375rem 0.75rem; cursor: pointer; }
-        .form-control::file-selector-button:hover { background: #e65588; border-color: #e65588; }
-        .form-check-input { background-color: #4a5056; border-color: #4a5056; }
-        .form-check-input:checked { background-color: #FF6699; border-color: #FF6699; }
-        .form-check-input:focus { box-shadow: 0 0 0 0.25rem rgba(255, 102, 153, 0.25); border-color: #FF6699; }
-        .form-check-label { color: #bbb; }
+        .color-pick { width: 40px; height: 40px; border-radius: 0; cursor: pointer; border: 3px solid transparent; transition: all .15s; }
+        .color-pick.active { border-color: var(--accent); transform: scale(1.1); }
+        .card { background: #ffffff; border-color: #dfe2ea; }
+        .card-body { color: #1b1622; }
+        h4, h6 { color: #1b1622; }
+        .text-muted { color: #6c757d !important; }
+        .form-control { background: #ffffff; border-color: #d5d9e3; color: #1b1622; }
+        .form-control:focus { background: #ffffff; border-color: var(--accent); color: #1b1622; }
+        .form-control::file-selector-button { background: var(--accent); border-color: var(--accent); color: #fff; border-radius: 0; padding: 0.375rem 0.75rem; cursor: pointer; }
+        .form-control::file-selector-button:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+        .form-check-input { background-color: #ffffff; border-color: #c7cbd8; }
+        .form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+        .form-check-input:focus { box-shadow: 0 0 0 0.25rem var(--accent-alpha25); border-color: var(--accent); }
+        .form-check-label { color: #5f5a66; }
         .btn-primary { background: var(--accent); border-color: var(--accent); }
         .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-        .btn-outline-secondary { color: #bbb; border-color: #4a5056; }
-        .btn-outline-secondary:hover { background: #3e4347; border-color: #5a6066; color: #e0e0e0; }
+        .btn-outline-secondary { color: #5f5a66; border-color: #d5d9e3; }
+        .btn-outline-secondary:hover { background: #eef0f6; border-color: #c7cbd8; color: #1b1622; }
+    
+        /* Cathay-style square corners */
+        .form-control, .form-select, .input-group-text, .btn, .card, .modal-content, .modal-header, .modal-footer, .dropdown-menu, .badge, .alert, .toast, .nav-pills .nav-link, .pagination .page-link, .list-group-item, .navbar-toggler, .form-check-input, .rounded, .rounded-1, .rounded-2, .rounded-3, .rounded-circle, .rounded-pill { border-radius: 0 !important; }
+        .navbar { box-shadow: none !important; }
     </style>
 </head>
 <body>
     <div id="toast-container" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;"></div>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top shadow-sm">
         <div class="container">
             <a class="navbar-brand" href="index.html"><i class="bi bi-book me-2"></i><span class="site-name">校园图书馆</span></a>
             <div class="d-flex align-items-center gap-3">
-                <a class="text-white" href="javascript:history.back()" title="返回"><i class="bi bi-arrow-left fs-5"></i></a>
+                <a class="text-body" href="javascript:history.back()" title="返回"><i class="bi bi-arrow-left fs-5"></i></a>
                 <span id="creditDisplay" class="badge credit-badge"></span>
-                <span id="userDisplay" class="text-white"></span>
+                <span id="userDisplay" class="text-body"></span>
             </div>
         </div>
     </nav>
@@ -56,7 +61,7 @@
                 <div class="card-body">
                     <h6><i class="bi bi-palette me-2"></i>主题颜色</h6>
                     <div class="d-flex gap-2 flex-wrap" id="colorPicker">
-                        <div class="color-pick" style="background:#FF6699" data-color="#FF6699" title="默认粉"></div>
+                        <div class="color-pick" style="background:#4b1e1e" data-color="#4b1e1e" title="默认酒红"></div>
                         <div class="color-pick" style="background:#0d6efd" data-color="#0d6efd" title="蓝色"></div>
                         <div class="color-pick" style="background:#198754" data-color="#198754" title="绿色"></div>
                         <div class="color-pick" style="background:#dc3545" data-color="#dc3545" title="红色"></div>
@@ -100,7 +105,7 @@
                             </div>
                             <small class="text-muted">2-80个字符</small>
                         </div>
-                        <div class="col-md-12 mt-3"><hr style="border-color:#4a5056;opacity:0.3;"></div>
+                        <div class="col-md-12 mt-3"><hr style="border-color:#dfe2ea;opacity:0.8;"></div>
                         <div class="col-md-4">
                             <label class="form-label text-muted small">原密码</label>
                             <input type="password" id="oldPassword" class="form-control" placeholder="输入当前密码">
@@ -123,7 +128,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/app.js?v=044"></script>
+    <script src="js/app.js?v=046"></script>
     <script>
         (async function () {
             const user = await checkAuthAndRedirect();
@@ -136,13 +141,13 @@
             cb.className = 'badge ' + cc + ' credit-badge';
             cb.textContent = '信誉分: ' + cs;
 
-            let currentColor = '#0d6efd';
+            let currentColor = '#4b1e1e';
 
             async function loadSettings() {
                 const r = await apiGet('/user/settings');
                 if (r && r.code === 200) {
                     const s = r.data;
-                    currentColor = s.theme_color || '#0d6efd';
+                    currentColor = s.theme_color || '#4b1e1e';
                     document.getElementById('learnMode').checked = s.learning_trigger_mode === '自动';
                     document.querySelectorAll('.color-pick').forEach(el => {
                         el.classList.toggle('active', el.dataset.color === currentColor);

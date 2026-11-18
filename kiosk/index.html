@@ -7,46 +7,51 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        :root { --accent: #4b1e1e; --accent-hover: #280d05; --accent-alpha25: rgba(75,30,30,0.25); --accent-alpha15: rgba(75,30,30,0.15); --accent-alpha10: rgba(75,30,30,0.1); }
         * { box-sizing: border-box; }
-        body { background: #2E3134 url('img/bg.png') center/cover fixed no-repeat; background-blend-mode: overlay; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { background: linear-gradient(rgba(250,251,254,0.9), rgba(250,251,254,0.9)), url('img/bg.png') center/cover fixed no-repeat; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #1b1622; }
         .kiosk-container { width: 100%; max-width: 600px; padding: 24px; }
-        .kiosk-card { background: #363b3f; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); padding: 32px 24px; color: #e0e0e0; }
+        .kiosk-card { background: #ffffff; border-radius: 0; box-shadow: 0 4px 24px rgba(27,22,34,0.10); padding: 32px 24px; color: #1b1622; }
         .kiosk-title { font-size: 24px; font-weight: 700; text-align: center; margin-bottom: 24px; color: var(--accent); }
-        .btn-kiosk { font-size: 18px; padding: 14px 24px; border-radius: 12px; width: 100%; min-height: 56px; }
-        .input-kiosk { font-size: 18px; padding: 14px 16px; border-radius: 12px; height: 56px; text-align: center; background: #24272a; border-color: #4a5056; color: #e0e0e0; }
-        .input-kiosk:focus { background: #363b3f; border-color: var(--accent); color: #e0e0e0; }
-        .input-kiosk::placeholder { color: #888; }
+        .btn-kiosk { font-size: 18px; padding: 14px 24px; border-radius: 0; width: 100%; min-height: 56px; }
+        .input-kiosk { font-size: 18px; padding: 14px 16px; border-radius: 0; height: 56px; text-align: center; background: #f7f8fb; border-color: #d5d9e3; color: #1b1622; }
+        .input-kiosk:focus { background: #ffffff; border-color: var(--accent); color: #1b1622; box-shadow: 0 0 0 0.2rem var(--accent-alpha25); }
+        .input-kiosk::placeholder { color: #9c98a6; }
         .input-kiosk:-webkit-autofill,
         .input-kiosk:-webkit-autofill:hover,
-        .input-kiosk:-webkit-autofill:focus { -webkit-text-fill-color: #e0e0e0; -webkit-box-shadow: 0 0 0 1000px #24272a inset; transition: background-color 5000s ease-in-out 0s; }
-        .result-card { background: #24272a; border-radius: 12px; padding: 20px; margin-top: 16px; color: #e0e0e0; }
-        .status-ok { color: #4ade80; font-weight: 600; }
-        .status-no { color: #f87171; font-weight: 600; }
+        .input-kiosk:-webkit-autofill:focus { -webkit-text-fill-color: #1b1622; -webkit-box-shadow: 0 0 0 1000px #f7f8fb inset; transition: background-color 5000s ease-in-out 0s; }
+        .result-card { background: #f7f8fb; border: 1px solid #e6e8ef; border-radius: 0; padding: 20px; margin-top: 16px; color: #1b1622; }
+        .status-ok { color: #1f7a45; font-weight: 600; }
+        .status-no { color: #b91c1c; font-weight: 600; }
         .btn-primary { background: var(--accent); border-color: var(--accent); }
         .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
-        .btn-success { background: #4ade80; border-color: #4ade80; color: #2E3134; }
-        .btn-success:hover { background: #22c55e; border-color: #22c55e; color: #2E3134; }
-        .btn-outline-secondary { color: #bbb; border-color: #444; }
-        .btn-outline-secondary:hover { background: #333; border-color: #555; color: #e0e0e0; }
-        .alert-danger { background: #3a2d2d; border-color: #dc3545; color: #f87171; }
-        .text-muted { color: #888 !important; }
-        .keyboard-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; }
-        .keyboard-container { position: fixed; bottom: 0; left: 0; right: 0; background: #24272a; border-top: 2px solid #4a5056; z-index: 1001; padding: 12px; display: none; }
+        .btn-success { background: #198754; border-color: #198754; color: #fff; }
+        .btn-success:hover { background: #157347; border-color: #146c43; color: #fff; }
+        .btn-outline-secondary { color: #5f5a66; border-color: #d5d9e3; }
+        .btn-outline-secondary:hover { background: #eef0f6; border-color: #c7cbd8; color: #1b1622; }
+        .alert-danger { background: #fdeaea; border-color: #f3c4c4; color: #b91c1c; }
+        .text-muted { color: #6c757d !important; }
+        .keyboard-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.35); z-index: 1000; display: none; }
+        .keyboard-container { position: fixed; bottom: 0; left: 0; right: 0; background: #ffffff; border-top: 2px solid #dfe2ea; z-index: 1001; padding: 12px; display: none; box-shadow: 0 -4px 18px rgba(75,30,30,0.10); }
         .keyboard-row { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; }
-        .keyboard-key { min-width: 40px; height: 48px; border-radius: 8px; background: #363b3f; border: 1px solid #4a5056; color: #e0e0e0; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
-        .keyboard-key:active { background: var(--accent); }
+        .keyboard-key { min-width: 40px; height: 48px; border-radius: 0; background: #f3f4f9; border: 1px solid #d5d9e3; color: #1b1622; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; }
+        .keyboard-key:active { background: var(--accent); color: #fff; }
         .keyboard-key.key-space { flex: 1; max-width: 200px; }
-        .keyboard-key.key-backspace { min-width: 80px; background: #4a5056; }
+        .keyboard-key.key-backspace { min-width: 80px; background: #e6e8ef; }
         .keyboard-key.key-enter { min-width: 80px; background: var(--accent); color: #fff; }
         .keyboard-key.key-close { min-width: 60px; background: #dc3545; color: #fff; }
-        .keyboard-key.key-shift { min-width: 80px; background: #4a5056; }
-        .keyboard-key.key-shift.active { background: var(--accent); }
+        .keyboard-key.key-shift { min-width: 80px; background: #e6e8ef; }
+        .keyboard-key.key-shift.active { background: var(--accent); color: #fff; }
         .keyboard-key.key-pinyin { min-width: 60px; background: #6f42c1; color: #fff; }
         .pinyin-candidates { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; justify-content: center; }
-        .pinyin-candidate { padding: 6px 12px; background: #363b3f; border: 1px solid #4a5056; border-radius: 6px; color: #e0e0e0; cursor: pointer; font-size: 16px; }
-        .pinyin-candidate:active { background: var(--accent); }
+        .pinyin-candidate { padding: 6px 12px; background: #f3f4f9; border: 1px solid #d5d9e3; border-radius: 0; color: #1b1622; cursor: pointer; font-size: 16px; }
+        .pinyin-candidate:active { background: var(--accent); color: #fff; }
         .pinyin-input-bar { display: flex; gap: 4px; margin-bottom: 8px; align-items: center; }
-        .pinyin-text { flex: 1; padding: 8px; background: #363b3f; border: 1px solid #4a5056; border-radius: 6px; color: #e0e0e0; font-size: 16px; text-align: center; }
+        .pinyin-text { flex: 1; padding: 8px; background: #f3f4f9; border: 1px solid #d5d9e3; border-radius: 0; color: #1b1622; font-size: 16px; text-align: center; }
+    
+        /* Cathay-style square corners */
+        .form-control, .form-select, .input-group-text, .btn, .card, .modal-content, .modal-header, .modal-footer, .dropdown-menu, .badge, .alert, .toast, .nav-pills .nav-link, .pagination .page-link, .list-group-item, .navbar-toggler, .form-check-input, .rounded, .rounded-1, .rounded-2, .rounded-3, .rounded-circle, .rounded-pill { border-radius: 0 !important; }
+        .navbar { box-shadow: none !important; }
     </style>
 </head>
 <body>
@@ -116,7 +121,7 @@
     <div class="kiosk-container" id="app"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/app.js?v=046"></script>
     <script>
         const app = document.getElementById('app');
 

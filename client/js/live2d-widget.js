@@ -38,7 +38,7 @@
         if (!tip) {
             tip = document.createElement('div');
             tip.id = 'live2d-tip';
-            tip.style.cssText = 'position:fixed;right:30px;bottom:320px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
+            tip.style.cssText = 'position:fixed;right:30px;bottom:320px;max-width:200px;padding:10px 14px;background:rgba(255,255,255,0.96);color:#1b1622;border-radius:14px 14px 4px 14px;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #dfe2ea;box-shadow:0 4px 14px rgba(27,22,34,0.10);';
             document.body.appendChild(tip);
         }
 
@@ -49,7 +49,7 @@
     if (!tipBox) {
         tipBox = document.createElement('div');
         tipBox.id = 'live2d-tip';
-        tipBox.style.cssText = 'position:fixed;right:30px;bottom:320px;max-width:200px;padding:10px 14px;background:rgba(54,59,63,0.92);color:#e0e0e0;border-radius:14px 14px 4px 14px;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #4a5056;';
+        tipBox.style.cssText = 'position:fixed;right:30px;bottom:320px;max-width:200px;padding:10px 14px;background:rgba(255,255,255,0.96);color:#1b1622;border-radius:14px 14px 4px 14px;font-size:13px;z-index:1000;opacity:0;transition:opacity .3s;pointer-events:none;border:1px solid #dfe2ea;box-shadow:0 4px 14px rgba(27,22,34,0.10);';
         document.body.appendChild(tipBox);
     }
 
@@ -65,7 +65,7 @@
         var btn = document.createElement('button');
         btn.id = 'live2d-toggle';
         btn.innerHTML = isHidden ? '<i class="bi bi-eye"></i>' : '<i class="bi bi-eye-slash"></i>';
-        btn.style.cssText = 'position:fixed;right:10px;bottom:320px;width:36px;height:36px;border-radius:50%;background:rgba(54,59,63,0.9);border:1px solid #4a5056;color:#e0e0e0;cursor:pointer;z-index:1001;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;opacity:0.7;';
+        btn.style.cssText = 'position:fixed;right:10px;bottom:320px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.96);border:1px solid #dfe2ea;color:#5f5a66;cursor:pointer;z-index:1001;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .2s;opacity:0.7;box-shadow:0 2px 8px rgba(27,22,34,0.10);';
         btn.onmouseover = function() { btn.style.opacity = '1'; };
         btn.onmouseout = function() { btn.style.opacity = '0.7'; };
         btn.onclick = toggleLive2d;

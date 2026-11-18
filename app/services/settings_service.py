@@ -11,7 +11,7 @@ def get_settings(user):
         db.session.commit()
     return {
         'background_image_url': settings.background_image_url or '',
-        'theme_color': settings.theme_color or '#0d6efd',
+        'theme_color': settings.theme_color or '#4B1E1E',
         'learning_trigger_mode': settings.learning_trigger_mode or '主动'
     }
 

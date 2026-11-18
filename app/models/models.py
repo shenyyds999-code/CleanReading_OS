@@ -249,7 +249,7 @@ class UserSetting(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), unique=True, nullable=False, index=True)
     background_image_url = db.Column(db.String(512), default='')
-    theme_color = db.Column(db.String(20), default='#FF6699')
+    theme_color = db.Column(db.String(20), default='#4B1E1E')
     learning_trigger_mode = db.Column(db.String(20), default='主动')
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),

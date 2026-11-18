@@ -1,5 +1,5 @@
 from flask import Blueprint, request
-from app.services import auth_service
+from app.services import auth_service, system_service
 from app.utils.response import success, error
 from app.utils.jwt_helper import generate_token, login_required, admin_required, revoke_current_token
 from app.utils.rate_limiter import rate_limit
@@ -12,6 +12,9 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/register', methods=['POST'])
 @rate_limit(limit_str='10/minute', key_func=lambda: request.remote_addr or '127.0.0.1')
 def register():
+    if system_service.get_config('allow_register') == 'false':
+        return error(403, '注册通道已关闭，请联系管理员获取账号')
+
     data = request.get_json(silent=True)
     if not data:
         return error(400, '请提供有效的JSON数据')

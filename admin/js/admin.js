@@ -119,8 +119,8 @@ function loadSiteName() {
 }
 
 function applyAccentColor(hex) {
-    hex = (hex || '#FF6699').trim();
-    if (!/^#[0-9a-fA-F]{6}$/.test(hex)) hex = '#FF6699';
+    hex = (hex || '#4b1e1e').trim();
+    if (!/^#[0-9a-fA-F]{6}$/.test(hex) || hex.toLowerCase() === '#ff6699') hex = '#4b1e1e';
 
     var r = parseInt(hex.slice(1, 3), 16);
     var g = parseInt(hex.slice(3, 5), 16);

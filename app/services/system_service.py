@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 
 DEFAULTS = {
     'site_name': 'CleanReading OS',
+    'allow_register': 'true',
 }
 
 

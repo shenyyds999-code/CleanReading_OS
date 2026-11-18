@@ -9,7 +9,8 @@ system_bp = Blueprint('system', __name__)
 @system_bp.route('/config', methods=['GET'])
 def get_config():
     site_name = system_service.get_config('site_name')
-    return success({'site_name': site_name})
+    allow_register = system_service.get_config('allow_register') != 'false'
+    return success({'site_name': site_name, 'allow_register': allow_register})
 
 
 @system_bp.route('/config', methods=['PUT'])
@@ -24,4 +25,9 @@ def update_config(current_user):
         return error(400, '站点名称不能为空')
 
     system_service.set_config('site_name', site_name)
-    return success({'site_name': site_name}, '站点名称已更新')
+
+    if 'allow_register' in data:
+        system_service.set_config('allow_register', 'true' if data['allow_register'] else 'false')
+
+    allow_register = system_service.get_config('allow_register') != 'false'
+    return success({'site_name': site_name, 'allow_register': allow_register}, '系统配置已更新')
